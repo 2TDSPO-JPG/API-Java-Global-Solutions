@@ -12,70 +12,193 @@
                 <p class="sub" th:text="${r.category} + ' · ' + ${r.neighborhood}">—</p>
             </div>
             <div class="row">
-                <span class="tag" th:if="${r.recurrent}">prioridade por recorrência</span>
+                <span class="tag late" th:if="${r.overdue}">fora do prazo</span>
+                <span class="tag" th:if="${r.recurrent}">recorrente</span>
+                <span class="tag blue" th:if="${r.reopenCount > 0}" th:text="'reaberto ' + ${r.reopenCount} + 'x'">reaberto</span>
                 <span class="tag grey" th:if="${r.deleted}">excluído pelo morador</span>
+                <span class="badge" th:classappend="'b-' + ${r.priority}" th:text="'Prioridade ' + ${r.priorityLabel}">Prioridade</span>
                 <span class="badge" th:classappend="'b-' + ${r.status}" th:text="${@fmt.status(r.status)}">—</span>
             </div>
         </div>
         <div th:replace="~{painel/fragments :: flash}"></div>
+
         <section class="grid g3">
-            <div class="card span2">
-                <h2>Relato do morador</h2>
-                <p style="white-space:pre-line;margin-top:0" th:text="${c.description}">descrição</p>
-                <dl class="kv">
-                    <dt>Morador</dt><dd th:text="${r.ownerName} + ' · ' + ${r.ownerEmail}">—</dd>
-                    <dt>Endereço</dt><dd th:text="${r.address}">—</dd>
-                    <dt>Coordenadas</dt>
-                    <dd><a target="_blank" rel="noopener"
-                           th:href="'https://www.openstreetmap.org/?mlat=' + ${c.latitude} + '&amp;mlon=' + ${c.longitude} + '#map=18/' + ${c.latitude} + '/' + ${c.longitude}"
-                           th:text="${c.latitude} + ', ' + ${c.longitude}">ver no mapa</a></dd>
-                    <dt>Sensor vinculado</dt><dd th:text="${r.sensorPrefix != null} ? ${r.sensorPrefix} : 'Sem cobertura de sensor'">—</dd>
-                    <dt>Aberto em</dt><dd th:text="${@fmt.dataHora(r.createdAt)}">—</dd>
-                    <dt>Encerrado em</dt><dd th:text="${@fmt.dataHora(r.closedAt)}">—</dd>
-                    <dt>Protocolo anterior</dt>
-                    <dd><a th:if="${c.previousId != null}" th:href="@{/painel/chamados/{id}(id=${c.previousId})}" th:text="${c.previousProtocol}"></a>
-                        <span th:if="${c.previousId == null}">—</span></dd>
-                </dl>
-                <div th:if="${c.photoUrl != null}" style="margin-top:14px">
-                    <img th:src="${c.photoUrl}" alt="Foto do relato" style="max-width:100%;max-height:340px;border-radius:10px;border:1px solid var(--line)">
+            <!-- ===================== coluna principal ===================== -->
+            <div class="span2 stack-forms">
+                <div class="card">
+                    <h2>Relato do morador</h2>
+                    <p style="white-space:pre-line;margin-top:0" th:text="${c.description}">descrição</p>
+                    <dl class="kv">
+                        <dt>Morador</dt><dd th:text="${r.ownerName} + ' · ' + ${r.ownerEmail}">—</dd>
+                        <dt>Endereço</dt><dd th:text="${r.address}">—</dd>
+                        <dt>Coordenadas</dt>
+                        <dd><a target="_blank" rel="noopener"
+                               th:href="'https://www.openstreetmap.org/?mlat=' + ${c.latitude} + '&amp;mlon=' + ${c.longitude} + '#map=18/' + ${c.latitude} + '/' + ${c.longitude}"
+                               th:text="${c.latitude} + ', ' + ${c.longitude}">ver no mapa</a></dd>
+                        <dt>Sensor vinculado</dt>
+                        <dd>
+                            <span th:text="${r.sensorPrefix != null} ? ${r.sensorPrefix} : 'Sem cobertura de sensor'">—</span>
+                            <span class="badge" th:if="${c.sensorStatus != null}" th:classappend="'b-' + ${c.sensorStatus}"
+                                  th:text="${@fmt.status(c.sensorStatus)}"></span>
+                            <span class="small muted" th:text="${c.sensorLocked} ? ' · definido pela equipe' : ' · pela cobertura'"></span>
+                        </dd>
+                        <dt>Prazo (SLA)</dt>
+                        <dd><span th:text="${@fmt.dataHora(r.dueAt)}">—</span>
+                            <span class="small" th:classappend="${r.overdue} ? 'muted' : 'muted'"
+                                  th:if="${r.status != 'closed'}" th:text="' · ' + ${@fmt.prazo(r.dueAt)}"></span></dd>
+                        <dt>Prioridade sugerida</dt><dd th:text="${c.suggestedPriority} + ' (pelo sensor, recorrência e categoria)'">—</dd>
+                        <dt>Responsável</dt><dd th:text="${r.assigneeName != null} ? ${r.assigneeName} : 'Não atribuído'">—</dd>
+                        <dt>Aberto em</dt><dd th:text="${@fmt.dataHora(r.createdAt)}">—</dd>
+                        <dt>Encerrado em</dt>
+                        <dd th:text="${r.closedAt != null} ? (${@fmt.dataHora(r.closedAt)} + ' · ' + ${r.outcomeLabel}) : '—'">—</dd>
+                        <dt>Protocolo anterior</dt>
+                        <dd><a th:if="${c.previousId != null}" th:href="@{/painel/chamados/{id}(id=${c.previousId})}" th:text="${c.previousProtocol}"></a>
+                            <span th:if="${c.previousId == null}">—</span></dd>
+                    </dl>
+                    <div th:if="${c.photoUrl != null}" style="margin-top:14px">
+                        <img th:src="${c.photoUrl}" alt="Foto do relato" style="max-width:100%;max-height:340px;border-radius:10px;border:1px solid var(--line)">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Histórico do chamado</h2>
+                    <p class="small muted" style="margin-top:-6px">Trilha de auditoria: cada mudança fica registrada com autor e horário.
+                        Notas internas (roxo) não aparecem para o morador.</p>
+                    <p class="empty" th:if="${c.history.isEmpty()}">Sem registros.</p>
+                    <ul class="timeline">
+                        <li th:each="h : ${c.history}"
+                            th:classappend="${h.internal} ? 'internal' : ((${h.type == 'REOPENED'} or ${h.type == 'AUTO_REOPENED'}) ? 'reopen' : '')">
+                            <div class="row between">
+                                <strong th:text="${@fmt.historico(h.type)}">tipo</strong>
+                                <span class="small muted" th:text="${@fmt.dataHora(h.createdAt)} + ' · ' + ${h.actor}">data</span>
+                            </div>
+                            <div class="small" th:if="${h.from != null or h.to != null}"
+                                 th:text="${@fmt.status(h.from)} + ' → ' + ${@fmt.status(h.to)}"></div>
+                            <div class="small" th:classappend="${h.internal} ? 'note' : ''" th:if="${h.message != null}" th:text="${h.message}"></div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <h2>Complementos do morador</h2>
+                    <p class="empty" th:if="${c.updates.isEmpty()}">Sem complementos.</p>
+                    <ul class="timeline">
+                        <li th:each="u : ${c.updates}">
+                            <div class="small muted" th:text="${@fmt.dataHora(u.createdAt)}">data</div>
+                            <div th:text="${u.note != null} ? ${u.note} : '(somente foto)'">nota</div>
+                            <img th:if="${u.photoUrl != null}" th:src="${u.photoUrl}" alt="Foto do complemento"
+                                 style="max-width:260px;border-radius:8px;margin-top:6px;border:1px solid var(--line)">
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <div class="card">
-                <h2>Atendimento</h2>
-                <dl class="kv" style="grid-template-columns:1fr">
-                    <dt>Nota de andamento</dt><dd th:text="${c.progressNote != null} ? ${c.progressNote} : '—'">—</dd>
-                    <dt>Desfecho</dt><dd th:text="${c.resolution != null} ? ${c.resolution} : '—'">—</dd>
-                    <dt>Avaliação técnica</dt>
-                    <dd th:text="${c.assessmentNote != null} ? (${c.assessmentNote} + ' (' + ${@fmt.dataHora(c.assessmentRequestedAt)} + ')') : 'Não solicitada'">—</dd>
-                </dl>
-                <form th:if="${r.status != 'closed' and !r.deleted}" th:action="@{/painel/chamados/{id}/status(id=${r.id})}"
-                      th:object="${statusForm}" method="post" style="margin-top:12px" data-loading="Atualizando atendimento e notificando o morador…">
-                    <label for="status">Novo status</label>
-                    <select id="status" name="status">
-                        <option value="received" th:if="${r.status == 'received'}" selected>Recebido (só nota)</option>
-                        <option value="in_progress" th:selected="${r.status == 'received'}">Em atendimento</option>
-                        <option value="closed" th:if="${r.status == 'in_progress'}">Encerrado</option>
-                    </select>
-                    <label for="progressNote">Nota de andamento</label>
-                    <textarea id="progressNote" th:field="*{progressNote}" maxlength="600" placeholder="Ex.: equipe acionada para vistoria"></textarea>
-                    <label for="resolution">Desfecho (obrigatório para encerrar)</label>
-                    <textarea id="resolution" th:field="*{resolution}" maxlength="600" placeholder="Ex.: rede desobstruída"></textarea>
-                    <button type="submit" style="margin-top:12px;width:100%">Atualizar atendimento</button>
-                </form>
-                <p class="small muted" th:if="${r.status == 'closed'}">Atendimento encerrado.</p>
+
+            <!-- ===================== coluna de ações ===================== -->
+            <div class="stack-forms">
+                <div class="card" th:if="${r.status != 'closed' and !r.deleted}">
+                    <h2>Atendimento</h2>
+                    <dl class="kv" style="grid-template-columns:1fr;margin-bottom:6px">
+                        <dt>Nota atual</dt><dd th:text="${c.progressNote != null} ? ${c.progressNote} : '—'">—</dd>
+                        <dt>Avaliação técnica</dt>
+                        <dd th:text="${c.assessmentNote != null} ? (${c.assessmentNote} + ' (' + ${@fmt.dataHora(c.assessmentRequestedAt)} + ')') : 'Não solicitada'">—</dd>
+                    </dl>
+                    <div class="ai-box" style="margin:10px 0 4px">
+                        <div class="row between"><strong class="small">Texto para o morador</strong><span class="badge b-ai">IA</span></div>
+                        <div class="row" style="margin-top:8px">
+                            <form th:action="@{/painel/chamados/{id}/sugestao(id=${r.id})}" method="post" data-loading="A IA está escrevendo a mensagem…">
+                                <input type="hidden" name="tipo" value="andamento">
+                                <button class="ghost small" type="submit">Sugerir andamento</button>
+                            </form>
+                            <form th:action="@{/painel/chamados/{id}/sugestao(id=${r.id})}" method="post" data-loading="A IA está escrevendo a mensagem…"
+                                  th:if="${r.status == 'in_progress'}">
+                                <input type="hidden" name="tipo" value="desfecho">
+                                <button class="ghost small" type="submit">Sugerir desfecho</button>
+                            </form>
+                        </div>
+                    </div>
+                    <form th:action="@{/painel/chamados/{id}/status(id=${r.id})}" th:object="${statusForm}" method="post"
+                          data-loading="Atualizando atendimento e notificando o morador…">
+                        <label for="status">Novo status</label>
+                        <select id="status" name="status">
+                            <option value="received" th:if="${r.status == 'received'}" selected>Recebido (só nota)</option>
+                            <option value="in_progress" th:selected="${r.status == 'received' or r.status == 'in_progress'}"
+                                    th:text="${r.status == 'in_progress'} ? 'Em atendimento (só nota)' : 'Em atendimento'">Em atendimento</option>
+                            <option value="closed" th:if="${r.status == 'in_progress'}">Encerrado</option>
+                        </select>
+                        <label for="progressNote">Nota de andamento (visível ao morador)</label>
+                        <textarea id="progressNote" th:field="*{progressNote}" maxlength="600" placeholder="Ex.: equipe acionada para vistoria"></textarea>
+                        <div th:if="${r.status == 'in_progress'}">
+                            <label for="outcome">Tipo de desfecho</label>
+                            <select th:field="*{outcome}">
+                                <option value="resolved">Resolvido</option>
+                                <option value="stabilized">Estabilizado (em observação por 7 dias)</option>
+                                <option value="unfounded">Sem procedência</option>
+                                <option value="forwarded">Encaminhado a outro órgão</option>
+                            </select>
+                            <p class="small muted" style="margin:6px 0 0">“Estabilizado” reabre o chamado sozinho se o sensor vinculado voltar ao alarme em 7 dias.</p>
+                            <label for="resolution">Desfecho (obrigatório para encerrar)</label>
+                            <textarea id="resolution" th:field="*{resolution}" maxlength="600" placeholder="Ex.: rede desobstruída"></textarea>
+                        </div>
+                        <button type="submit" style="margin-top:12px;width:100%">Atualizar atendimento</button>
+                    </form>
+                </div>
+
+                <div class="card" th:if="${r.status == 'closed' and !r.deleted}">
+                    <h2>Encerrado</h2>
+                    <dl class="kv" style="grid-template-columns:1fr">
+                        <dt>Tipo de desfecho</dt><dd th:text="${r.outcomeLabel != null} ? ${r.outcomeLabel} : 'Resolvido'">—</dd>
+                        <dt>Desfecho</dt><dd th:text="${c.resolution != null} ? ${c.resolution} : '—'">—</dd>
+                    </dl>
+                    <form th:action="@{/painel/chamados/{id}/reabrir(id=${r.id})}" method="post" data-loading="Reabrindo o chamado…" style="margin-top:12px">
+                        <label for="motivo">O problema voltou? Reabra com o motivo</label>
+                        <textarea id="motivo" name="motivo" maxlength="600" required placeholder="Ex.: morador relatou novo extravasamento"></textarea>
+                        <button class="danger" type="submit" style="margin-top:10px;width:100%">Reabrir chamado</button>
+                    </form>
+                </div>
+
+                <div class="card" th:if="${!r.deleted}">
+                    <h2>Nota interna</h2>
+                    <form th:action="@{/painel/chamados/{id}/nota(id=${r.id})}" method="post" data-loading="Salvando nota…">
+                        <textarea name="nota" maxlength="1000" required placeholder="Visível só para a equipe. Ex.: caminhão limpa-fossa agendado"></textarea>
+                        <button class="ghost" type="submit" style="margin-top:10px;width:100%">Registrar nota</button>
+                    </form>
+                </div>
+
+                <details class="box" th:if="${!r.deleted}">
+                    <summary>Editar chamado</summary>
+                    <form th:action="@{/painel/chamados/{id}/editar(id=${r.id})}" th:object="${editForm}" method="post" data-loading="Salvando alterações…">
+                        <label for="category">Categoria</label>
+                        <select th:field="*{category}">
+                            <option th:each="cat : ${c.categories}" th:value="${cat}" th:text="${cat}">cat</option>
+                        </select>
+                        <label for="priority">Prioridade</label>
+                        <select th:field="*{priority}">
+                            <option value="critical">Crítica · prazo de 4 h</option>
+                            <option value="high">Alta · prazo de 24 h</option>
+                            <option value="medium">Média · prazo de 72 h</option>
+                            <option value="low">Baixa · prazo de 7 dias</option>
+                        </select>
+                        <label for="assigneeId">Responsável</label>
+                        <select th:field="*{assigneeId}">
+                            <option value="">Não atribuído</option>
+                            <option th:each="o : ${c.staff}" th:value="${o.value}" th:text="${o.label}">equipe</option>
+                        </select>
+                        <label for="sensorMode">Sensor vinculado</label>
+                        <select th:field="*{sensorMode}">
+                            <option value="auto">Automático (cobertura mais próxima)</option>
+                            <option value="none">Sem vínculo com sensor</option>
+                            <option th:each="o : ${c.sensors}" th:value="${o.value}" th:text="${o.label}">sensor</option>
+                        </select>
+                        <label for="description">Descrição</label>
+                        <textarea th:field="*{description}" maxlength="1000" required></textarea>
+                        <label for="address">Endereço</label>
+                        <input th:field="*{address}" maxlength="200" required>
+                        <label for="neighborhood">Bairro / região</label>
+                        <input th:field="*{neighborhood}" maxlength="80" required>
+                        <button type="submit" style="margin-top:12px;width:100%">Salvar alterações</button>
+                    </form>
+                </details>
             </div>
-        </section>
-        <section class="card" style="margin-top:16px">
-            <h2>Histórico de complementos do morador</h2>
-            <p class="empty" th:if="${c.updates.isEmpty()}">Sem complementos.</p>
-            <ul class="timeline">
-                <li th:each="u : ${c.updates}">
-                    <div class="small muted" th:text="${@fmt.dataHora(u.createdAt)}">data</div>
-                    <div th:text="${u.note != null} ? ${u.note} : '(somente foto)'">nota</div>
-                    <img th:if="${u.photoUrl != null}" th:src="${u.photoUrl}" alt="Foto do complemento"
-                         style="max-width:260px;border-radius:8px;margin-top:6px;border:1px solid var(--line)">
-                </li>
-            </ul>
         </section>
     </main>
 </div>

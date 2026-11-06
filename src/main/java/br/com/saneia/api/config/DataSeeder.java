@@ -15,6 +15,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import br.com.saneia.api.report.Report;
+import br.com.saneia.api.report.ReportPriority;
 import br.com.saneia.api.report.ReportRepository;
 import br.com.saneia.api.report.ReportStatus;
 import br.com.saneia.api.sensor.EventKind;
@@ -133,11 +134,13 @@ public class DataSeeder implements ApplicationRunner {
             Report r1 = new Report("SAN-DEMO-0001", resident, now.minus(Duration.ofDays(30)));
             r1.applyContent("Vazamento", "Há água com cheiro forte saindo na calçada, perto do ponto de ônibus.",
                     "Setor Leste · próximo ao ponto de ônibus", "Setor Leste", -23.5514, -46.6309, r1.getCreatedAt());
+            r1.prioritize(ReportPriority.MEDIUM, now); // aberto há 30 dias: aparece como fora do prazo
             reports.save(r1);
             Report r2 = new Report("SAN-DEMO-0002", resident, now.minus(Duration.ofDays(21)));
             r2.applyContent("Mau cheiro", "O cheiro aparece à tarde perto da entrada da viela.",
                     "Setor Norte · entrada da viela", "Setor Norte", -23.5495, -46.6373, r2.getCreatedAt());
             r2.linkSensor(s07);
+            r2.prioritize(ReportPriority.HIGH, now);
             r2.changeStatus(ReportStatus.IN_PROGRESS, null, "A equipe aguarda a próxima vistoria no local.",
                     r2.getCreatedAt().plus(Duration.ofDays(1)));
             reports.save(r2);

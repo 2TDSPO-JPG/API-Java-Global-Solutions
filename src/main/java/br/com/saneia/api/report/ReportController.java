@@ -120,6 +120,12 @@ public class ReportController {
         return reports.addUpdate(CurrentUser.from(auth), id, request.note(), photo);
     }
 
+    @PostMapping(path = "/{id}/reopen", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Operadora: reabre um protocolo encerrado (o problema voltou), com motivo")
+    public ReportResponse reopen(Authentication auth, @PathVariable Long id, @Valid @RequestBody NoteRequest request) {
+        return reports.reopen(CurrentUser.from(auth), id, request.note());
+    }
+
     @PostMapping(path = "/{id}/assessment", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Operadora: solicita avaliação técnica (motivo de 1 a 600 caracteres)")
     public ReportResponse requestAssessment(Authentication auth, @PathVariable Long id,

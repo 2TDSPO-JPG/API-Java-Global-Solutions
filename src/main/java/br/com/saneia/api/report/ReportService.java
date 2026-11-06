@@ -35,6 +35,7 @@ import br.com.saneia.api.messaging.EventPublisher;
 import br.com.saneia.api.messaging.Events;
 import br.com.saneia.api.sensor.Sensor;
 import br.com.saneia.api.sensor.SensorService;
+import br.com.saneia.api.sensor.SensorStatus;
 import br.com.saneia.api.user.AppUser;
 import br.com.saneia.api.user.AppUserRepository;
 import br.com.saneia.api.user.Role;
@@ -57,10 +58,13 @@ public class ReportService {
     private final ObjectMapper objectMapper;
     private final Validator validator;
     private final Clock clock;
+    private final ReportHistoryService history;
     private final SecureRandom random = new SecureRandom();
 
     public ReportService(ReportRepository reports, AppUserRepository users, SensorService sensors, FileService files,
-            EventPublisher publisher, ObjectMapper objectMapper, Validator validator, Clock clock) {
+            EventPublisher publisher, ObjectMapper objectMapper, Validator validator, Clock clock,
+            ReportHistoryService history) {
+        this.history = history;
         this.reports = reports;
         this.users = users;
         this.sensors = sensors;
@@ -118,8 +122,12 @@ public class ReportService {
         // Passado o prazo, vincula o protocolo anterior ainda aberto (prioridade por recorrência).
         report.linkPrevious(eligibility.existingOpen());
         report.linkSensor(sensors.nearestCovering(coordinate.latitude(), coordinate.longitude()).orElse(null));
+        report.prioritize(suggestPriority(category, report.getSensor(), report.getPreviousReport() != null), now);
         report.replacePhoto(files.storePhoto(photo));
         Report saved = reports.save(report);
+        history.record(saved, ReportHistory.Type.OPENED, owner.getName(), null, saved.getPriority().getLabel(),
+                "Protocolo aberto pelo morador" + (saved.getSensor() == null ? " (sem cobertura de sensor)."
+                        : " (sensor " + saved.getSensor().getPrefix() + ")."));
 
         publisher.publish(Events.KEY_REPORT_OPENED, new Events.ReportOpened(saved.getId(), saved.getProtocol(),
                 owner.getId(), category, saved.getNeighborhood(), saved.getPreviousReport() != null, now));
@@ -147,11 +155,15 @@ public class ReportService {
             report.linkPrevious(ReportPolicy.previousOpen(own, category, coordinate.latitude(), coordinate.longitude(),
                     report.getCreatedAt()).filter(previous -> !previous.getId().equals(report.getId())).orElse(null));
         }
-        report.linkSensor(sensors.nearestCovering(coordinate.latitude(), coordinate.longitude()).orElse(null));
+        if (!report.isSensorLocked()) {
+            report.linkSensor(sensors.nearestCovering(coordinate.latitude(), coordinate.longitude()).orElse(null));
+        }
         StoredFile newPhoto = files.storePhoto(photo);
         if (newPhoto != null) {
             report.replacePhoto(newPhoto); // sem nova foto, mantém a anterior
         }
+        history.record(report, ReportHistory.Type.EDITED, report.getOwner().getName(), null, null,
+                "Relato editado pelo morador" + (newPhoto != null ? " (nova foto)." : "."));
         return toResponse(report, user);
     }
 
@@ -163,6 +175,8 @@ public class ReportService {
             throw ApiException.conflict("O relato não pode mais ser excluído.");
         }
         report.markDeleted(clock.instant());
+        history.record(report, ReportHistory.Type.DELETED, report.getOwner().getName(), null, null,
+                "Relato excluído pelo morador (mantido para a regra de 20 dias).");
     }
 
     @Transactional
@@ -179,6 +193,8 @@ public class ReportService {
         AppUser author = report.getOwner();
         report.addUpdate(new ReportUpdate(report, author, detail.isEmpty() ? null : detail, files.storePhoto(photo),
                 clock.instant()));
+        history.record(report, ReportHistory.Type.UPDATE, author.getName(), null, null,
+                detail.isEmpty() ? "Complemento com foto." : "Complemento: " + detail);
         reports.flush();
         return toResponse(report, user);
     }
@@ -189,19 +205,53 @@ public class ReportService {
     public ReportResponse updateStatus(CurrentUser user, Long id, StatusUpdateRequest request) {
         requireRole(user, Role.OPERATOR, "O atendimento é atualizado pela operadora.");
         Report report = visible(user, id);
-        applyStatus(report, request);
+        applyStatus(report, request, actorName(user));
         return toResponse(report, user);
     }
 
     /** Usado pelo painel administrativo (Thymeleaf): o admin pode conduzir o atendimento de qualquer chamado. */
     @Transactional
-    public void updateStatusFromPanel(Long id, StatusUpdateRequest request) {
+    public void updateStatusFromPanel(Long id, StatusUpdateRequest request, String actor) {
         Report report = reports.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> ApiException.notFound("Relato não encontrado."));
-        applyStatus(report, request);
+        applyStatus(report, request, actor);
     }
 
-    private void applyStatus(Report report, StatusUpdateRequest request) {
+    /** Operadora reabre um protocolo encerrado (o problema voltou). O morador é notificado. */
+    @Transactional
+    public ReportResponse reopen(CurrentUser user, Long id, String note) {
+        requireRole(user, Role.OPERATOR, "A reabertura é feita pela operadora.");
+        Report report = visible(user, id);
+        reopen(report, note, actorName(user), false);
+        return toResponse(report, user);
+    }
+
+    @Transactional
+    public void reopenFromPanel(Long id, String note, String actor) {
+        Report report = reports.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> ApiException.notFound("Relato não encontrado."));
+        reopen(report, note, actor, false);
+    }
+
+    /** Reabertura comum à API, ao painel e à reabertura automática (participa da transação de quem chama). */
+    public void reopen(Report report, String note, String actor, boolean automatic) {
+        if (report.isOpen()) {
+            throw ApiException.conflict("O protocolo já está em aberto.");
+        }
+        String reason = note == null ? "" : note.trim();
+        if (reason.isEmpty() || reason.length() > NOTE_LIMIT) {
+            throw ApiException.badRequest("Informe o motivo da reabertura em até 600 caracteres.");
+        }
+        Instant now = clock.instant();
+        report.reopen(reason, now);
+        history.record(report, automatic ? ReportHistory.Type.AUTO_REOPENED : ReportHistory.Type.REOPENED, actor,
+                ReportStatus.CLOSED.apiValue(), ReportStatus.IN_PROGRESS.apiValue(), reason);
+        publisher.publish(Events.KEY_REPORT_STATUS, new Events.ReportStatusChanged(report.getId(),
+                report.getProtocol(), report.getOwner().getId(), ReportStatus.IN_PROGRESS.apiValue(), null,
+                "Protocolo reaberto: " + reason, now));
+    }
+
+    private void applyStatus(Report report, StatusUpdateRequest request, String actor) {
         if (!report.isOpen()) {
             throw ApiException.conflict("Este atendimento já foi encerrado.");
         }
@@ -216,6 +266,13 @@ public class ReportService {
         }
         ReportStatus previous = report.getStatus();
         report.changeStatus(next, resolution, progressNote, clock.instant());
+        if (next == ReportStatus.CLOSED) {
+            report.close(request.outcome());
+        }
+        String message = next == ReportStatus.CLOSED
+                ? report.getOutcome().getLabel() + ": " + resolution
+                : progressNote;
+        history.record(report, ReportHistory.Type.STATUS, actor, previous.apiValue(), next.apiValue(), message);
         if (previous != next || progressNote != null) {
             publisher.publish(Events.KEY_REPORT_STATUS, new Events.ReportStatusChanged(report.getId(),
                     report.getProtocol(), report.getOwner().getId(), next.apiValue(), report.getResolution(),
@@ -239,6 +296,8 @@ public class ReportService {
         }
         Instant now = clock.instant();
         report.requestAssessment(detail, now);
+        history.record(report, ReportHistory.Type.ASSESSMENT, actorName(user), null, null,
+                "Avaliação técnica solicitada: " + detail);
         publisher.publish(Events.KEY_REPORT_ASSESSMENT,
                 new Events.AssessmentRequested(report.getId(), report.getProtocol(), detail, now));
         return toResponse(report, user);
@@ -265,6 +324,28 @@ public class ReportService {
     }
 
     // ---------------------------------------------------------------- apoio
+
+    /**
+     * Prioridade sugerida na abertura: sensor da área em alarme = crítica; recorrência, sensor em alerta ou
+     * retorno de esgoto = alta; mau cheiro/outro sem cobertura = baixa; demais = média.
+     */
+    public ReportPriority suggestPriority(String category, Sensor sensor, boolean recurrent) {
+        SensorStatus sensorStatus = sensor == null ? null : sensors.effectiveStatus(sensor);
+        if (sensorStatus == SensorStatus.ALARM) {
+            return ReportPriority.CRITICAL;
+        }
+        if (recurrent || sensorStatus == SensorStatus.WARNING || "Retorno de esgoto".equals(category)) {
+            return ReportPriority.HIGH;
+        }
+        if (sensor == null && ("Mau cheiro".equals(category) || "Outro problema".equals(category))) {
+            return ReportPriority.LOW;
+        }
+        return ReportPriority.MEDIUM;
+    }
+
+    private String actorName(CurrentUser user) {
+        return users.findById(user.id()).map(AppUser::getName).orElse("Usuário " + user.id());
+    }
 
     private Report visible(CurrentUser user, Long id) {
         Report report = reports.findByIdAndDeletedAtIsNull(id)
@@ -341,6 +422,12 @@ public class ReportService {
                 previous == null ? null : String.valueOf(previous.getId()),
                 previous == null ? null : previous.getProtocol(),
                 operator ? report.getOwner().getName() : null,
-                report.getClosedAt(), updates, assessment);
+                report.getClosedAt(), updates, assessment,
+                operator ? report.getPriority() : null,
+                operator ? report.getDueAt() : null,
+                operator ? Boolean.valueOf(report.isOverdue(clock.instant())) : null,
+                operator && report.getAssignee() != null ? report.getAssignee().getName() : null,
+                operator ? report.getOutcome() : null,
+                operator ? Integer.valueOf(report.getReopenCount()) : null);
     }
 }

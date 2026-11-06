@@ -1,5 +1,6 @@
 package br.com.saneia.api.report;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -52,4 +53,8 @@ public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecif
     List<Report> findTop8ByDeletedAtIsNullOrderByCreatedAtDescIdDesc();
 
     List<Report> findBySensorIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long sensorId);
+
+    long countByDeletedAtIsNullAndStatusNotAndDueAtBefore(ReportStatus status, Instant now);
+
+    long countByDeletedAtIsNullAndReopenCountGreaterThan(Integer count);
 }

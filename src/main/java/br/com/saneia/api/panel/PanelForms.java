@@ -98,6 +98,17 @@ public final class PanelForms {
         @Size(max = 600, message = "A nota deve ter até 600 caracteres.")
         private String progressNote;
 
+        @Pattern(regexp = "|resolved|stabilized|unfounded|forwarded", message = "Escolha o tipo de desfecho.")
+        private String outcome = "resolved";
+
+        public String getOutcome() {
+            return outcome;
+        }
+
+        public void setOutcome(String outcome) {
+            this.outcome = outcome;
+        }
+
         public String getStatus() {
             return status;
         }
@@ -120,6 +131,86 @@ public final class PanelForms {
 
         public void setProgressNote(String progressNote) {
             this.progressNote = progressNote;
+        }
+    }
+
+    public static class EditForm {
+        @NotBlank(message = "Escolha a categoria.")
+        private String category;
+
+        @NotBlank(message = "Informe a descrição.")
+        @Size(max = 1000, message = "A descrição deve ter até 1000 caracteres.")
+        private String description;
+
+        @NotBlank(message = "Informe o endereço.")
+        @Size(max = 200, message = "O endereço deve ter até 200 caracteres.")
+        private String address;
+
+        @NotBlank(message = "Informe o bairro.")
+        @Size(max = 80, message = "O bairro deve ter até 80 caracteres.")
+        private String neighborhood;
+
+        @Pattern(regexp = "low|medium|high|critical", message = "Escolha a prioridade.")
+        private String priority;
+
+        private String assigneeId;
+
+        private String sensorMode;
+
+        public String getCategory() {
+            return category;
+        }
+
+        public void setCategory(String category) {
+            this.category = category;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public void setDescription(String description) {
+            this.description = description;
+        }
+
+        public String getAddress() {
+            return address;
+        }
+
+        public void setAddress(String address) {
+            this.address = address;
+        }
+
+        public String getNeighborhood() {
+            return neighborhood;
+        }
+
+        public void setNeighborhood(String neighborhood) {
+            this.neighborhood = neighborhood;
+        }
+
+        public String getPriority() {
+            return priority;
+        }
+
+        public void setPriority(String priority) {
+            this.priority = priority;
+        }
+
+        public String getAssigneeId() {
+            return assigneeId;
+        }
+
+        public void setAssigneeId(String assigneeId) {
+            this.assigneeId = assigneeId;
+        }
+
+        public String getSensorMode() {
+            return sensorMode;
+        }
+
+        public void setSensorMode(String sensorMode) {
+            this.sensorMode = sensorMode;
         }
     }
 }

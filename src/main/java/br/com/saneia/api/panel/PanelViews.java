@@ -35,7 +35,7 @@ public final class PanelViews {
     public record Kpis(long openReports, long received, long inProgress, long closed, long recurrentOpen,
             long deleted, String averageHandling, long sensorsActive, long sensorsAlarm, long sensorsWarning,
             long sensorsOffline, long sensorsNormal, long users, long emailsSent24h, long emailsFailed24h,
-            boolean smtpConfigured) {
+            boolean smtpConfigured, long overdue, long reopened) {
 
         public long totalReports() {
             return received + inProgress + closed;
@@ -53,7 +53,20 @@ public final class PanelViews {
 
     public record ReportRow(Long id, String protocol, String category, String neighborhood, String address,
             String status, Instant createdAt, Instant closedAt, String ownerName, String ownerEmail,
-            String sensorPrefix, boolean recurrent, boolean deleted, boolean hasPhoto) {
+            String sensorPrefix, boolean recurrent, boolean deleted, boolean hasPhoto, String priority,
+            String priorityLabel, Instant dueAt, boolean overdue, String assigneeName, String outcomeLabel,
+            int reopenCount) {
+    }
+
+    public record HistoryRow(Instant createdAt, String type, String actor, String from, String to, String message,
+            boolean internal) {
+    }
+
+    public record Option(String value, String label) {
+    }
+
+    public record MapPoint(String kind, String id, String label, String status, double lat, double lng,
+            double radius, String detail, String link) {
     }
 
     public record UpdateRow(Instant createdAt, String note, String photoUrl) {
@@ -61,7 +74,9 @@ public final class PanelViews {
 
     public record ReportDetail(ReportRow row, String description, double latitude, double longitude,
             String resolution, String progressNote, String assessmentNote, Instant assessmentRequestedAt,
-            String photoUrl, String previousProtocol, Long previousId, List<UpdateRow> updates) {
+            String photoUrl, String previousProtocol, Long previousId, List<UpdateRow> updates,
+            List<HistoryRow> history, Long assigneeId, Long sensorId, boolean sensorLocked, String sensorStatus,
+            String suggestedPriority, List<Option> staff, List<Option> sensors, List<String> categories) {
     }
 
     public record SensorRow(Long id, String prefix, String name, String equipmentType, String neighborhood,

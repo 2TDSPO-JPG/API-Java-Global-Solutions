@@ -1,8 +1,11 @@
 package br.com.saneia.api.panel;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -32,7 +35,11 @@ import br.com.saneia.api.common.ApiException;
 import br.com.saneia.api.file.FileService;
 import br.com.saneia.api.panel.PanelViews.AreaRisk;
 import br.com.saneia.api.panel.PanelViews.Dashboard;
+import br.com.saneia.api.insight.OperationsAiService;
 import br.com.saneia.api.panel.PanelViews.EventRow;
+import br.com.saneia.api.panel.PanelViews.HistoryRow;
+import br.com.saneia.api.panel.PanelViews.MapPoint;
+import br.com.saneia.api.panel.PanelViews.Option;
 import br.com.saneia.api.panel.PanelViews.Kpis;
 import br.com.saneia.api.panel.PanelViews.ReadingRow;
 import br.com.saneia.api.panel.PanelViews.ReportDetail;
@@ -43,7 +50,11 @@ import br.com.saneia.api.panel.PanelViews.SensorRow;
 import br.com.saneia.api.panel.PanelViews.UpdateRow;
 import br.com.saneia.api.panel.PanelViews.UserRow;
 import br.com.saneia.api.report.Report;
+import br.com.saneia.api.report.ReportCategory;
+import br.com.saneia.api.report.ReportHistoryService;
+import br.com.saneia.api.report.ReportPriority;
 import br.com.saneia.api.report.ReportRepository;
+import br.com.saneia.api.report.ReportService;
 import br.com.saneia.api.report.ReportStatus;
 import br.com.saneia.api.sensor.EventKind;
 import br.com.saneia.api.sensor.Forecast;
@@ -64,6 +75,8 @@ import br.com.saneia.api.user.Role;
 public class PanelService {
 
     private static final int RECURRENT_HIGH = 1;
+    private static final ZoneId BRAZIL = ZoneId.of("America/Sao_Paulo");
+    private static final DateTimeFormatter CSV_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final int OPEN_REPORTS_HIGH = 3;
 
     private final ReportRepository reports;
@@ -78,11 +91,18 @@ public class PanelService {
     private final FileService files;
     private final PasswordEncoder passwordEncoder;
     private final Clock clock;
+    private final ReportHistoryService reportHistory;
+    private final ReportService reportService;
+    private final OperationsAiService operationsAi;
 
     public PanelService(ReportRepository reports, SensorRepository sensors, SensorReadingRepository readings,
             SensorEventRepository events, SensorService sensorService, AppUserRepository users,
             AlertRecipientRepository recipients, EmailLogRepository emailLogs, AlertEmailService alertEmails,
-            FileService files, PasswordEncoder passwordEncoder, Clock clock) {
+            FileService files, PasswordEncoder passwordEncoder, Clock clock, ReportHistoryService reportHistory,
+            ReportService reportService, OperationsAiService operationsAi) {
+        this.reportHistory = reportHistory;
+        this.reportService = reportService;
+        this.operationsAi = operationsAi;
         this.reports = reports;
         this.sensors = sensors;
         this.readings = readings;
@@ -128,7 +148,9 @@ public class PanelService {
                 count(sensorRows, "normal"), users.count(),
                 emailLogs.countByStatusAndCreatedAtGreaterThanEqual(EmailLog.Status.SENT, since),
                 emailLogs.countByStatusAndCreatedAtGreaterThanEqual(EmailLog.Status.FAILED, since),
-                alertEmails.smtpConfigured());
+                alertEmails.smtpConfigured(),
+                reports.countByDeletedAtIsNullAndStatusNotAndDueAtBefore(ReportStatus.CLOSED, clock.instant()),
+                reports.countByDeletedAtIsNullAndReopenCountGreaterThan(0));
     }
 
     /**
@@ -187,15 +209,23 @@ public class PanelService {
 
     // ---------------------------------------------------------------- chamados
 
-    @Transactional(readOnly = true)
-    public Page<ReportRow> reports(String status, String query, boolean includeDeleted, int page) {
-        Specification<Report> spec = (root, cq, cb) -> {
+    private Specification<Report> spec(String status, String query, boolean includeDeleted, boolean overdueOnly,
+            String priority) {
+        Instant now = clock.instant();
+        return (root, cq, cb) -> {
             List<Predicate> filters = new ArrayList<>();
             if (!includeDeleted) {
                 filters.add(cb.isNull(root.get("deletedAt")));
             }
             if (StringUtils.hasText(status)) {
                 filters.add(cb.equal(root.get("status"), ReportStatus.fromApi(status)));
+            }
+            if (StringUtils.hasText(priority)) {
+                filters.add(cb.equal(root.get("priority"), ReportPriority.fromApi(priority)));
+            }
+            if (overdueOnly) {
+                filters.add(cb.notEqual(root.get("status"), ReportStatus.CLOSED));
+                filters.add(cb.lessThan(root.<Instant>get("dueAt"), now));
             }
             if (StringUtils.hasText(query)) {
                 String like = "%" + query.trim().toLowerCase(Locale.ROOT) + "%";
@@ -207,9 +237,48 @@ public class PanelService {
             }
             return cb.and(filters.toArray(Predicate[]::new));
         };
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ReportRow> reports(String status, String query, boolean includeDeleted, boolean overdueOnly,
+            String priority, int page) {
         PageRequest request = PageRequest.of(Math.max(page, 0), 15,
                 Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id")));
-        return reports.findAll(spec, request).map(this::reportRow);
+        return reports.findAll(spec(status, query, includeDeleted, overdueOnly, priority), request).map(this::reportRow);
+    }
+
+    /** CSV (separador ;, UTF-8 com BOM) dos chamados filtrados, para abrir direto no Excel. */
+    @Transactional(readOnly = true)
+    public byte[] reportsCsv(String status, String query, boolean includeDeleted, boolean overdueOnly, String priority) {
+        List<ReportRow> rows = reports.findAll(spec(status, query, includeDeleted, overdueOnly, priority),
+                PageRequest.of(0, 5000, Sort.by(Sort.Order.desc("createdAt")))).map(this::reportRow).getContent();
+        StringBuilder csv = new StringBuilder("\uFEFF");
+        csv.append("protocolo;categoria;bairro;endereco;status;prioridade;prazo;atrasado;responsavel;sensor;")
+                .append("aberto_em;encerrado_em;desfecho;reaberturas;morador;email_morador\n");
+        for (ReportRow r : rows) {
+            csv.append(String.join(";", cell(r.protocol()), cell(r.category()), cell(r.neighborhood()),
+                    cell(r.address()), cell(r.status()), cell(r.priorityLabel()), cell(fmt(r.dueAt())),
+                    r.overdue() ? "sim" : "nao", cell(r.assigneeName()), cell(r.sensorPrefix()),
+                    cell(fmt(r.createdAt())), cell(fmt(r.closedAt())), cell(r.outcomeLabel()),
+                    String.valueOf(r.reopenCount()), cell(r.ownerName()), cell(r.ownerEmail()))).append('\n');
+        }
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    private static String cell(String value) {
+        if (value == null) {
+            return "";
+        }
+        String clean = value.replace("\r", " ").replace("\n", " ");
+        // evita injeção de fórmula ao abrir no Excel
+        if (!clean.isEmpty() && "=+-@".indexOf(clean.charAt(0)) >= 0) {
+            clean = "'" + clean;
+        }
+        return clean.contains(";") || clean.contains("\"") ? "\"" + clean.replace("\"", "\"\"") + "\"" : clean;
+    }
+
+    private static String fmt(Instant instant) {
+        return instant == null ? "" : CSV_DATE.format(instant.atZone(BRAZIL));
     }
 
     @Transactional(readOnly = true)
@@ -220,11 +289,26 @@ public class PanelService {
                         u.getPhoto() == null ? null : files.signedUrl(u.getPhoto().getId())))
                 .toList();
         Report previous = report.getPreviousReport();
+        List<HistoryRow> historyRows = reportHistory.of(id).stream()
+                .map(h -> new HistoryRow(h.getCreatedAt(), h.getType().name(), h.getActorName(), h.getFromValue(),
+                        h.getToValue(), h.getMessage(), h.isInternalOnly()))
+                .toList();
+        List<Option> staff = staffOptions();
+        List<Option> sensorOptions = sensors.findByActiveTrue().stream()
+                .sorted(Comparator.comparing(Sensor::getPrefix))
+                .map(sn -> new Option(String.valueOf(sn.getId()), sn.getPrefix() + " · " + sn.getName() + " · " + sn.getNeighborhood()))
+                .toList();
+        Sensor sensor = report.getSensor();
         return new ReportDetail(reportRow(report), report.getDescription(), report.getLatitude(), report.getLongitude(),
                 report.getResolution(), report.getProgressNote(), report.getAssessmentNote(),
                 report.getAssessmentRequestedAt(),
                 report.getPhoto() == null ? null : files.signedUrl(report.getPhoto().getId()),
-                previous == null ? null : previous.getProtocol(), previous == null ? null : previous.getId(), updates);
+                previous == null ? null : previous.getProtocol(), previous == null ? null : previous.getId(), updates,
+                historyRows, report.getAssignee() == null ? null : report.getAssignee().getId(),
+                sensor == null ? null : sensor.getId(), report.isSensorLocked(),
+                sensor == null ? null : sensorService.effectiveStatus(sensor).apiValue(),
+                reportService.suggestPriority(report.getCategory(), sensor, report.getPreviousReport() != null).getLabel(),
+                staff, sensorOptions, ReportCategory.ALL);
     }
 
     // ---------------------------------------------------------------- equipamentos
@@ -326,7 +410,74 @@ public class PanelService {
         return new ReportRow(r.getId(), r.getProtocol(), r.getCategory(), r.getNeighborhood(), r.getAddress(),
                 r.getStatus().apiValue(), r.getCreatedAt(), r.getClosedAt(), r.getOwner().getName(),
                 r.getOwner().getEmail(), sensor == null ? null : sensor.getPrefix(),
-                r.getPreviousReport() != null && r.isOpen(), r.isDeleted(), r.getPhoto() != null);
+                r.getPreviousReport() != null && r.isOpen(), r.isDeleted(), r.getPhoto() != null,
+                r.getPriority().apiValue(), r.getPriority().getLabel(), r.getDueAt(), r.isOverdue(clock.instant()),
+                r.getAssignee() == null ? null : r.getAssignee().getName(),
+                r.getOutcome() == null ? null : r.getOutcome().getLabel(), r.getReopenCount());
+    }
+
+    // ---------------------------------------------------------------- mapa, IA e apoio
+
+    /** Pontos do mapa ao vivo: equipamentos (com raio de cobertura) e chamados abertos (cor pela prioridade). */
+    @Transactional(readOnly = true)
+    public List<MapPoint> mapPoints() {
+        List<MapPoint> points = new ArrayList<>();
+        for (Sensor sensor : sensors.findByActiveTrue()) {
+            SensorRow row = sensorRow(sensor);
+            points.add(new MapPoint("sensor", String.valueOf(sensor.getId()), sensor.getPrefix() + " · " + sensor.getName(),
+                    row.status(), sensor.getLatitude(), sensor.getLongitude(), sensor.getRadiusMeters(),
+                    row.percent() + "% da capacidade" + (row.reason() == null ? "" : " · " + row.reason()),
+                    "/painel/equipamentos/" + sensor.getId()));
+        }
+        for (Report report : reports.findByDeletedAtIsNullAndStatusNot(ReportStatus.CLOSED)) {
+            points.add(new MapPoint("report", String.valueOf(report.getId()),
+                    report.getProtocol() + " · " + report.getCategory(), report.getPriority().apiValue(),
+                    report.getLatitude(), report.getLongitude(), 0,
+                    report.getPriority().getLabel() + " · " + report.getStatus().apiValue().replace('_', ' ')
+                            + (report.isOverdue(clock.instant()) ? " · fora do prazo" : ""),
+                    "/painel/chamados/" + report.getId()));
+        }
+        return points;
+    }
+
+    @Transactional(readOnly = true)
+    public OperationsAiService.AiText bulletin() {
+        Dashboard d = dashboard();
+        Kpis k = d.kpis();
+        return operationsAi.bulletin(new OperationsAiService.BulletinContext(k.openReports(), k.overdue(),
+                k.recurrentOpen(), k.averageHandling(),
+                d.areas().stream().filter(a -> a.level() == RiskLevel.CRITICO).map(AreaRisk::name).toList(),
+                d.areas().stream().filter(a -> a.level() == RiskLevel.ALTO).map(AreaRisk::name).toList(),
+                d.sensorsAtRisk().stream().filter(sr -> "alarm".equals(sr.status())).map(SensorRow::prefix).toList(),
+                d.sensorsAtRisk().stream().filter(sr -> "offline".equals(sr.status())).map(SensorRow::prefix).toList()));
+    }
+
+    @Transactional(readOnly = true)
+    public OperationsAiService.AiText suggestReply(Long id, String kind) {
+        Report report = reports.findById(id).orElseThrow(() -> ApiException.notFound("Chamado não encontrado."));
+        Sensor sensor = report.getSensor();
+        return operationsAi.suggestReply(new OperationsAiService.ReplyContext(report.getProtocol(), report.getCategory(),
+                report.getNeighborhood(), report.getDescription(), report.getStatus().apiValue(),
+                sensor == null ? null : sensor.getPrefix() + " " + sensorService.effectiveStatus(sensor).apiValue(),
+                report.getProgressNote(), report.getResolution(), "desfecho".equals(kind) ? "desfecho" : "andamento"));
+    }
+
+    /** Equipe que pode ser responsável por um chamado (operadoras e administração). */
+    @Transactional(readOnly = true)
+    public List<Option> staffOptions() {
+        List<Option> staff = new ArrayList<>();
+        users.findByRole(Role.OPERATOR).forEach(u -> staff.add(new Option(String.valueOf(u.getId()), u.getName() + " (operadora)")));
+        users.findByRole(Role.ADMIN).forEach(u -> staff.add(new Option(String.valueOf(u.getId()), u.getName() + " (admin)")));
+        return staff;
+    }
+
+    /** Nome de quem está logado no painel (para a trilha de auditoria). */
+    @Transactional(readOnly = true)
+    public String actorName(String email) {
+        if (email == null) {
+            return "Administrador";
+        }
+        return users.findByEmailIgnoreCase(email).map(u -> u.getName() + " (painel)").orElse(email);
     }
 
     private SensorRow sensorRow(Sensor s) {

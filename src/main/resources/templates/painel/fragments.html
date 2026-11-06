@@ -76,6 +76,37 @@
         .b-offline { color: var(--off); background: var(--off-soft); }
         .b-in_progress, .b-admin, .b-operator { color: var(--info); background: var(--info-soft); }
         .b-resident { color: var(--brand); background: var(--brand-soft); }
+        .b-critical { color: #fff; background: var(--crit); }
+        .b-critical::before { background: #fff; }
+        .b-high { color: var(--high); background: var(--high-soft); }
+        .b-medium { color: var(--mod); background: var(--mod-soft); }
+        .b-low { color: var(--low); background: var(--low-soft); }
+        .b-ai { color: #6b3fa0; background: #f1e9fb; }
+        .tag.late { background: var(--crit); color: #fff; }
+        .tag.blue { background: var(--info-soft); color: var(--info); }
+        details.box { border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; background: var(--surface-2); }
+        details.box[open] { padding-bottom: 14px; }
+        details.box summary { cursor: pointer; font-weight: 700; padding: 12px 0; list-style: none; }
+        details.box summary::-webkit-details-marker { display: none; }
+        details.box summary::before { content: "▸ "; color: var(--brand); }
+        details.box[open] summary::before { content: "▾ "; }
+        .stack-forms > * + * { margin-top: 14px; }
+        .batchbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 14px; margin-bottom: 14px;
+                    border-radius: 10px; background: var(--brand-soft); border: 1px solid #b9d6ca; }
+        .batchbar select, .batchbar input { width: auto; min-width: 150px; padding: 7px 10px; }
+        .batchbar .count { font-weight: 700; color: var(--brand-2); margin-right: 6px; }
+        td.check, th.check { width: 34px; }
+        td.check input, th.check input { width: 16px; height: 16px; }
+        .timeline li.internal::before { background: #8e5ac8; }
+        .timeline li.internal .note { background: #f6f0fc; border: 1px dashed #c9b2e6; border-radius: 8px; padding: 6px 10px; }
+        .timeline li.reopen::before { background: var(--crit); }
+        .ai-box { border: 1px solid #dccbf2; background: linear-gradient(135deg, #faf6ff, #ffffff); border-radius: 12px; padding: 16px; }
+        #mapa { height: calc(100vh - 210px); min-height: 460px; border-radius: 12px; border: 1px solid var(--line); }
+        .map-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12px; color: var(--muted); }
+        .dot { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 5px; vertical-align: -1px;
+               border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .15); }
+        .sq { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 5px; vertical-align: -1px;
+              border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .15); }
         .tag { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 6px;
                background: var(--crit-soft); color: var(--crit); margin-left: 6px; }
         .tag.grey { background: var(--off-soft); color: var(--off); }
@@ -246,7 +277,7 @@
                 });
                 document.addEventListener('click', function (event) {
                     var link = event.target.closest ? event.target.closest('a[href]') : null;
-                    if (!link || link.target === '_blank' || event.ctrlKey || event.metaKey || event.shiftKey
+                    if (!link || link.target === '_blank' || link.hasAttribute('download') || event.ctrlKey || event.metaKey || event.shiftKey
                         || event.button !== 0 || link.origin !== window.location.origin
                         || link.getAttribute('href').charAt(0) === '#') { return; }
                     start(link.getAttribute('data-loading'));
@@ -267,6 +298,7 @@
 <aside class="side" th:fragment="nav">
     <div class="logo"><span class="drop"></span><div>Saneia<small>Painel admin</small></div></div>
     <a class="nav" th:classappend="${pagina == 'inicio'} ? 'on'" th:href="@{/painel}"><span class="ico">◉</span>Visão geral</a>
+    <a class="nav" th:classappend="${pagina == 'mapa'} ? 'on'" th:href="@{/painel/mapa}"><span class="ico">⌖</span>Mapa ao vivo</a>
     <a class="nav" th:classappend="${pagina == 'areas'} ? 'on'" th:href="@{/painel/areas}"><span class="ico">▦</span>Risco por área</a>
     <a class="nav" th:classappend="${pagina == 'chamados'} ? 'on'" th:href="@{/painel/chamados}"><span class="ico">☰</span>Chamados</a>
     <a class="nav" th:classappend="${pagina == 'equipamentos'} ? 'on'" th:href="@{/painel/equipamentos}"><span class="ico">◈</span>Equipamentos</a>

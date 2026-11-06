@@ -100,6 +100,28 @@ public class Report {
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priority_level", length = 20)
+    private ReportPriority priority;
+
+    @Column(name = "due_at")
+    private Instant dueAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id")
+    private AppUser assignee;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "closing_outcome", length = 20)
+    private ReportOutcome outcome;
+
+    @Column(name = "reopen_count")
+    private Integer reopenCount;
+
+    /** Vínculo com o sensor definido manualmente pela equipe (não é recalculado pela cobertura ao editar). */
+    @Column(name = "sensor_locked")
+    private Boolean sensorLocked;
+
     @OneToMany(mappedBy = "report", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("createdAt ASC, id ASC")
     private List<ReportUpdate> updates = new ArrayList<>();
@@ -161,6 +183,41 @@ public class Report {
     public void markDeleted(Instant now) {
         this.deletedAt = now;
         this.updatedAt = now;
+    }
+
+    /** Define a prioridade e recalcula o prazo (SLA) a partir da abertura. */
+    public void prioritize(ReportPriority priority, Instant now) {
+        this.priority = priority;
+        this.dueAt = createdAt.plus(priority.sla());
+        this.updatedAt = now;
+    }
+
+    public void assign(AppUser assignee, Instant now) {
+        this.assignee = assignee;
+        this.updatedAt = now;
+    }
+
+    public void lockSensor(Sensor sensor, boolean locked) {
+        this.sensor = sensor;
+        this.sensorLocked = locked;
+    }
+
+    public void close(ReportOutcome outcome) {
+        this.outcome = outcome == null ? ReportOutcome.RESOLVED : outcome;
+    }
+
+    /** Reabre um protocolo encerrado: volta para em atendimento e limpa o encerramento. */
+    public void reopen(String progressNote, Instant now) {
+        this.status = ReportStatus.IN_PROGRESS;
+        this.closedAt = null;
+        this.outcome = null;
+        this.progressNote = progressNote;
+        this.reopenCount = getReopenCount() + 1;
+        this.updatedAt = now;
+    }
+
+    public boolean isOverdue(Instant now) {
+        return isOpen() && !isDeleted() && dueAt != null && now.isAfter(dueAt);
     }
 
     public void addUpdate(ReportUpdate update) {
@@ -262,5 +319,29 @@ public class Report {
 
     public List<ReportUpdate> getUpdates() {
         return updates;
+    }
+
+    public ReportPriority getPriority() {
+        return priority == null ? ReportPriority.MEDIUM : priority;
+    }
+
+    public Instant getDueAt() {
+        return dueAt;
+    }
+
+    public AppUser getAssignee() {
+        return assignee;
+    }
+
+    public ReportOutcome getOutcome() {
+        return outcome;
+    }
+
+    public int getReopenCount() {
+        return reopenCount == null ? 0 : reopenCount;
+    }
+
+    public boolean isSensorLocked() {
+        return Boolean.TRUE.equals(sensorLocked);
     }
 }

@@ -34,3 +34,8 @@ FROM sn_notifications ORDER BY id DESC;
 /* ---------- Alertas de risco máximo (painel /api/painel/alertas) ---------- */
 SELECT id, full_name, email, active FROM sn_alert_recipients ORDER BY id;
 SELECT TOP 10 id, recipient, subject, delivery_status, error_message, created_at FROM sn_email_logs ORDER BY id DESC;
+
+/* ---------- Gestão do chamado: prioridade, SLA, responsável e auditoria ---------- */
+SELECT id, protocol, report_status, priority_level, due_at, assignee_id, closing_outcome, reopen_count FROM sn_reports ORDER BY id DESC;
+SELECT TOP 20 report_id, entry_type, actor_name, from_value, to_value, message, internal_only, created_at
+FROM sn_report_history ORDER BY id DESC;

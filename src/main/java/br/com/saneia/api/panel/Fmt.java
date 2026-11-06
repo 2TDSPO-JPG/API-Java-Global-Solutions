@@ -66,7 +66,50 @@ public class Fmt {
             case "sent" -> "Enviado";
             case "failed" -> "Falhou";
             case "skipped" -> "Não enviado";
+            case "low" -> "Baixa";
+            case "medium" -> "Média";
+            case "high" -> "Alta";
+            case "critical" -> "Crítica";
+            case "resolved" -> "Resolvido";
+            case "stabilized" -> "Estabilizado (em observação)";
+            case "unfounded" -> "Sem procedência";
+            case "forwarded" -> "Encaminhado a outro órgão";
             default -> value;
         };
+    }
+
+    /** Rótulo dos tipos de registro do histórico do chamado. */
+    public String historico(String type) {
+        if (type == null) {
+            return "—";
+        }
+        return switch (type) {
+            case "OPENED" -> "Protocolo aberto";
+            case "EDITED" -> "Chamado editado";
+            case "STATUS" -> "Mudança de status";
+            case "PRIORITY" -> "Prioridade alterada";
+            case "ASSIGNED" -> "Responsável definido";
+            case "SENSOR_LINK" -> "Vínculo com sensor";
+            case "REOPENED" -> "Reaberto pela equipe";
+            case "AUTO_REOPENED" -> "Reaberto automaticamente";
+            case "NOTE" -> "Nota interna";
+            case "UPDATE" -> "Complemento do morador";
+            case "ASSESSMENT" -> "Avaliação técnica";
+            case "DELETED" -> "Excluído pelo morador";
+            default -> type;
+        };
+    }
+
+    /** Tempo restante (ou atraso) até o prazo do chamado. */
+    public String prazo(Instant dueAt) {
+        if (dueAt == null) {
+            return "—";
+        }
+        Duration left = Duration.between(Instant.now(), dueAt);
+        boolean late = left.isNegative();
+        Duration abs = left.abs();
+        String amount = abs.toHours() >= 48 ? abs.toDays() + " dias" : abs.toHours() >= 1 ? abs.toHours() + " h"
+                : Math.max(1, abs.toMinutes()) + " min";
+        return late ? "atrasado há " + amount : "vence em " + amount;
     }
 }

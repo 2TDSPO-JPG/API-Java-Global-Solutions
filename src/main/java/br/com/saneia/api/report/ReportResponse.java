@@ -7,7 +7,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 
 import br.com.saneia.api.common.Coordinate;
 
-/** Report do contrato. photoUrl, sensorId e resolution aceitam null; assessment só aparece para a operadora. */
+/**
+ * Report do contrato. photoUrl, sensorId e resolution aceitam null. assessment, priority, dueAt, overdue,
+ * assigneeName, outcome e reopenCount só aparecem para a operadora.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record ReportResponse(
         String id,
@@ -28,7 +31,13 @@ public record ReportResponse(
         String ownerName,
         Instant closedAt,
         List<Update> updates,
-        Assessment assessment) {
+        Assessment assessment,
+        ReportPriority priority,
+        Instant dueAt,
+        Boolean overdue,
+        String assigneeName,
+        ReportOutcome outcome,
+        Integer reopenCount) {
 
     public record Update(String id, Instant createdAt, String note, String photoUrl) {
     }

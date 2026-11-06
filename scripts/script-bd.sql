@@ -2,10 +2,11 @@
    Saneia · DDL do banco em nuvem (Azure SQL Database / SQL Server)
    Global Solution FIAP 2026/2 · CitizenTech
 
-   10 tabelas (8 do domínio + 2 de alertas por e-mail):
+   11 tabelas (9 do domínio + 2 de alertas por e-mail):
      sn_users ─┬─< sn_reports >── sn_sensors ─┬─< sn_sensor_readings
                │       │  └── sn_files         └─< sn_sensor_events
-               │       └─< sn_report_updates
+               │       ├─< sn_report_updates
+               │       └─< sn_report_history (auditoria: status, edição, prioridade, notas internas)
                └─< sn_notifications (por usuário ou por papel)
      sn_alert_recipients (quem recebe o e-mail de risco máximo) · sn_email_logs (registro de cada envio)
 
@@ -18,6 +19,7 @@
 IF OBJECT_ID('dbo.sn_email_logs', 'U') IS NOT NULL DROP TABLE dbo.sn_email_logs;
 IF OBJECT_ID('dbo.sn_alert_recipients', 'U') IS NOT NULL DROP TABLE dbo.sn_alert_recipients;
 IF OBJECT_ID('dbo.sn_notifications', 'U') IS NOT NULL DROP TABLE dbo.sn_notifications;
+IF OBJECT_ID('dbo.sn_report_history', 'U') IS NOT NULL DROP TABLE dbo.sn_report_history;
 IF OBJECT_ID('dbo.sn_report_updates', 'U') IS NOT NULL DROP TABLE dbo.sn_report_updates;
 IF OBJECT_ID('dbo.sn_reports', 'U') IS NOT NULL DROP TABLE dbo.sn_reports;
 IF OBJECT_ID('dbo.sn_files', 'U') IS NOT NULL DROP TABLE dbo.sn_files;
@@ -143,7 +145,16 @@ CREATE TABLE dbo.sn_reports (
     updated_at               DATETIMEOFFSET(6)    NOT NULL,
     closed_at                DATETIMEOFFSET(6)    NULL,
     deleted_at               DATETIMEOFFSET(6)    NULL,
+    priority_level           NVARCHAR(20)         NULL,
+    due_at                   DATETIMEOFFSET(6)    NULL,
+    assignee_id              BIGINT               NULL,
+    closing_outcome          NVARCHAR(20)         NULL,
+    reopen_count             INT                  NULL,
+    sensor_locked            BIT                  NULL,
     CONSTRAINT pk_sn_reports PRIMARY KEY (id),
+    CONSTRAINT fk_sn_reports_assignee FOREIGN KEY (assignee_id) REFERENCES dbo.sn_users (id),
+    CONSTRAINT ck_sn_reports_priority CHECK (priority_level IS NULL OR priority_level IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    CONSTRAINT ck_sn_reports_outcome CHECK (closing_outcome IS NULL OR closing_outcome IN ('RESOLVED', 'STABILIZED', 'UNFOUNDED', 'FORWARDED')),
     CONSTRAINT uk_sn_reports_protocol UNIQUE (protocol),
     CONSTRAINT fk_sn_reports_owner FOREIGN KEY (owner_id) REFERENCES dbo.sn_users (id),
     CONSTRAINT fk_sn_reports_sensor FOREIGN KEY (sensor_id) REFERENCES dbo.sn_sensors (id),
@@ -167,6 +178,22 @@ CREATE TABLE dbo.sn_report_updates (
     CONSTRAINT fk_sn_updates_author FOREIGN KEY (author_id) REFERENCES dbo.sn_users (id),
     CONSTRAINT fk_sn_updates_photo FOREIGN KEY (photo_file_id) REFERENCES dbo.sn_files (id)
 );
+
+/* Trilha de auditoria dos chamados (inclui notas internas da equipe) */
+CREATE TABLE dbo.sn_report_history (
+    id             BIGINT IDENTITY(1,1) NOT NULL,
+    report_id      BIGINT               NOT NULL,
+    entry_type     NVARCHAR(30)         NOT NULL,
+    actor_name     NVARCHAR(120)        NOT NULL,
+    from_value     NVARCHAR(80)         NULL,
+    to_value       NVARCHAR(80)         NULL,
+    message        NVARCHAR(1000)       NULL,
+    internal_only  BIT                  NOT NULL,
+    created_at     DATETIMEOFFSET(6)    NOT NULL,
+    CONSTRAINT pk_sn_report_history PRIMARY KEY (id),
+    CONSTRAINT fk_sn_history_report FOREIGN KEY (report_id) REFERENCES dbo.sn_reports (id)
+);
+CREATE INDEX ix_sn_history_report ON dbo.sn_report_history (report_id, created_at);
 
 /* Notificações geradas pelo consumidor da fila saneia.notifications */
 CREATE TABLE dbo.sn_notifications (

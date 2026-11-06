@@ -10,18 +10,29 @@
                 <h1>Chamados</h1>
                 <p class="sub" th:text="${chamados.totalElements} + ' chamado(s) encontrado(s)'">—</p>
             </div>
+            <a class="btn ghost small" download
+               th:href="@{/painel/chamados.csv(status=${status},q=${q},excluidos=${excluidos},atrasados=${atrasados},prioridade=${prioridade})}">⇩ Exportar CSV</a>
         </div>
         <div th:replace="~{painel/fragments :: flash}"></div>
         <section class="card" style="margin-bottom:16px">
             <div class="row between">
                 <div class="chips">
-                    <a th:href="@{/painel/chamados(q=${q})}" th:classappend="${status == ''} ? 'on'">Todos</a>
-                    <a th:href="@{/painel/chamados(status='received',q=${q})}" th:classappend="${status == 'received'} ? 'on'">Recebidos</a>
-                    <a th:href="@{/painel/chamados(status='in_progress',q=${q})}" th:classappend="${status == 'in_progress'} ? 'on'">Em atendimento</a>
-                    <a th:href="@{/painel/chamados(status='closed',q=${q})}" th:classappend="${status == 'closed'} ? 'on'">Encerrados</a>
+                    <a th:href="@{/painel/chamados(q=${q},prioridade=${prioridade})}" th:classappend="${status == '' and !atrasados} ? 'on'">Todos</a>
+                    <a th:href="@{/painel/chamados(status='received',q=${q},prioridade=${prioridade})}" th:classappend="${status == 'received'} ? 'on'">Recebidos</a>
+                    <a th:href="@{/painel/chamados(status='in_progress',q=${q},prioridade=${prioridade})}" th:classappend="${status == 'in_progress'} ? 'on'">Em atendimento</a>
+                    <a th:href="@{/painel/chamados(status='closed',q=${q},prioridade=${prioridade})}" th:classappend="${status == 'closed'} ? 'on'">Encerrados</a>
+                    <a th:href="@{/painel/chamados(atrasados=true,q=${q},prioridade=${prioridade})}" th:classappend="${atrasados} ? 'on'">⏱ Fora do prazo</a>
                 </div>
                 <form class="filters" th:action="@{/painel/chamados}" method="get" data-loading="Buscando chamados…">
                     <input type="hidden" name="status" th:value="${status}">
+                    <input type="hidden" name="atrasados" th:value="${atrasados}">
+                    <select name="prioridade">
+                        <option value="" th:selected="${prioridade == ''}">Todas as prioridades</option>
+                        <option value="critical" th:selected="${prioridade == 'critical'}">Crítica</option>
+                        <option value="high" th:selected="${prioridade == 'high'}">Alta</option>
+                        <option value="medium" th:selected="${prioridade == 'medium'}">Média</option>
+                        <option value="low" th:selected="${prioridade == 'low'}">Baixa</option>
+                    </select>
                     <input type="search" name="q" th:value="${q}" placeholder="Protocolo, área, categoria ou endereço">
                     <label class="small" style="margin:0;display:flex;gap:6px;align-items:center;font-weight:500">
                         <input type="checkbox" name="excluidos" value="true" th:checked="${excluidos}" style="width:auto"> incluir excluídos
@@ -30,37 +41,106 @@
                 </form>
             </div>
         </section>
+
         <section class="card">
+            <form id="lote" class="batchbar" th:action="@{/painel/chamados/lote}" method="post" data-loading="Aplicando ação em lote…">
+                <span class="count" id="lote-count">0 selecionado(s)</span>
+                <select name="acao" id="lote-acao" required>
+                    <option value="">Ação em lote…</option>
+                    <option value="start">Iniciar atendimento</option>
+                    <option value="close">Encerrar (atendimento conjunto)</option>
+                    <option value="assign">Atribuir responsável</option>
+                    <option value="priority">Definir prioridade</option>
+                </select>
+                <span data-for="close">
+                    <select name="outcome">
+                        <option value="resolved">Resolvido</option>
+                        <option value="stabilized">Estabilizado (observação)</option>
+                        <option value="unfounded">Sem procedência</option>
+                        <option value="forwarded">Encaminhado</option>
+                    </select>
+                    <input name="resolution" maxlength="600" placeholder="Desfecho comum (obrigatório)">
+                </span>
+                <span data-for="assign">
+                    <select name="assigneeId">
+                        <option value="">Ninguém</option>
+                        <option th:each="o : ${equipe}" th:value="${o.value}" th:text="${o.label}">equipe</option>
+                    </select>
+                </span>
+                <span data-for="priority">
+                    <select name="priority">
+                        <option value="critical">Crítica</option>
+                        <option value="high">Alta</option>
+                        <option value="medium">Média</option>
+                        <option value="low">Baixa</option>
+                    </select>
+                </span>
+                <button type="submit" id="lote-aplicar" disabled>Aplicar</button>
+            </form>
+
             <p class="empty" th:if="${chamados.content.isEmpty()}">Nenhum chamado com esses filtros.</p>
             <div class="table-wrap" th:unless="${chamados.content.isEmpty()}">
                 <table>
-                    <thead><tr><th>Protocolo</th><th>Categoria</th><th>Área / endereço</th><th>Morador</th><th>Sensor</th>
-                        <th>Estado</th><th>Aberto em</th><th>Encerrado em</th></tr></thead>
+                    <thead><tr><th class="check"><input type="checkbox" id="lote-todos" title="Selecionar todos"></th>
+                        <th>Protocolo</th><th>Categoria</th><th>Área</th><th>Prioridade</th><th>Prazo</th>
+                        <th>Responsável</th><th>Estado</th><th>Aberto em</th></tr></thead>
                     <tbody>
                     <tr th:each="r : ${chamados.content}">
+                        <td class="check"><input type="checkbox" name="ids" form="lote" th:value="${r.id}"
+                                                 th:disabled="${r.deleted}" class="lote-item"></td>
                         <td><a th:href="@{/painel/chamados/{id}(id=${r.id})}" th:text="${r.protocol}">SAN</a>
                             <span class="tag" th:if="${r.recurrent}">recorrente</span>
-                            <span class="tag grey" th:if="${r.deleted}">excluído</span></td>
+                            <span class="tag blue" th:if="${r.reopenCount > 0}">reaberto</span>
+                            <span class="tag grey" th:if="${r.deleted}">excluído</span>
+                            <div class="small muted" th:text="${r.ownerName}"></div></td>
                         <td th:text="${r.category}">—</td>
-                        <td><span th:text="${r.neighborhood}">—</span><div class="small muted" th:text="${r.address}"></div></td>
-                        <td><span th:text="${r.ownerName}">—</span><div class="small muted" th:text="${r.ownerEmail}"></div></td>
-                        <td th:text="${r.sensorPrefix != null} ? ${r.sensorPrefix} : 'sem cobertura'" th:classappend="${r.sensorPrefix == null} ? 'muted small'">—</td>
+                        <td><span th:text="${r.neighborhood}">—</span>
+                            <div class="small muted" th:text="${r.sensorPrefix != null} ? ('sensor ' + ${r.sensorPrefix}) : 'sem cobertura'"></div></td>
+                        <td><span class="badge" th:classappend="'b-' + ${r.priority}" th:text="${r.priorityLabel}">—</span></td>
+                        <td class="small">
+                            <span class="tag late" th:if="${r.overdue}" style="margin:0">atrasado</span>
+                            <span th:if="${r.status != 'closed' and !r.overdue}" th:text="${@fmt.prazo(r.dueAt)}"></span>
+                            <span th:if="${r.status == 'closed'}" class="muted" th:text="${r.outcomeLabel}"></span>
+                        </td>
+                        <td class="small" th:text="${r.assigneeName != null} ? ${r.assigneeName} : '—'">—</td>
                         <td><span class="badge" th:classappend="'b-' + ${r.status}" th:text="${@fmt.status(r.status)}">—</span></td>
                         <td class="small" th:text="${@fmt.dataHora(r.createdAt)}">—</td>
-                        <td class="small" th:text="${@fmt.dataHora(r.closedAt)}">—</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
             <div class="pager" th:if="${chamados.totalPages > 1}">
                 <a class="btn ghost small" th:if="${chamados.hasPrevious()}"
-                   th:href="@{/painel/chamados(status=${status},q=${q},excluidos=${excluidos},page=${chamados.number - 1})}">← Anterior</a>
+                   th:href="@{/painel/chamados(status=${status},q=${q},excluidos=${excluidos},atrasados=${atrasados},prioridade=${prioridade},page=${chamados.number - 1})}">← Anterior</a>
                 <span class="small muted" th:text="'Página ' + ${chamados.number + 1} + ' de ' + ${chamados.totalPages}"></span>
                 <a class="btn ghost small" th:if="${chamados.hasNext()}"
-                   th:href="@{/painel/chamados(status=${status},q=${q},excluidos=${excluidos},page=${chamados.number + 1})}">Próxima →</a>
+                   th:href="@{/painel/chamados(status=${status},q=${q},excluidos=${excluidos},atrasados=${atrasados},prioridade=${prioridade},page=${chamados.number + 1})}">Próxima →</a>
             </div>
         </section>
     </main>
 </div>
+<script>
+    (function () {
+        var items = Array.prototype.slice.call(document.querySelectorAll('.lote-item:not([disabled])'));
+        var all = document.getElementById('lote-todos');
+        var count = document.getElementById('lote-count');
+        var apply = document.getElementById('lote-aplicar');
+        var action = document.getElementById('lote-acao');
+        var groups = document.querySelectorAll('[data-for]');
+        function refresh() {
+            var selected = items.filter(function (i) { return i.checked; }).length;
+            count.textContent = selected + ' selecionado(s)';
+            apply.disabled = selected === 0 || !action.value;
+            groups.forEach(function (g) { g.style.display = g.getAttribute('data-for') === action.value ? 'inline-flex' : 'none'; });
+            groups.forEach(function (g) { g.style.gap = '8px'; });
+        }
+        items.forEach(function (i) { i.addEventListener('change', refresh); });
+        if (all) {
+            all.addEventListener('change', function () { items.forEach(function (i) { i.checked = all.checked; }); refresh(); });
+        }
+        action.addEventListener('change', refresh);
+        refresh();
+    })();
+</script>
 </body>
 </html>

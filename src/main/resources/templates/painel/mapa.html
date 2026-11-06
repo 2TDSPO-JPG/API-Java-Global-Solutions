@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Mapa ao vivo', false)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main>
+        <div class="top">
+            <div>
+                <h1>Mapa ao vivo</h1>
+                <p class="sub">Equipamentos com o raio de cobertura e chamados abertos coloridos pela prioridade</p>
+            </div>
+            <div class="row">
+                <label class="small" style="margin:0;display:flex;gap:6px;align-items:center;font-weight:500">
+                    <input type="checkbox" id="ver-sensores" checked style="width:auto"> equipamentos</label>
+                <label class="small" style="margin:0;display:flex;gap:6px;align-items:center;font-weight:500">
+                    <input type="checkbox" id="ver-raio" checked style="width:auto"> cobertura</label>
+                <label class="small" style="margin:0;display:flex;gap:6px;align-items:center;font-weight:500">
+                    <input type="checkbox" id="ver-chamados" checked style="width:auto"> chamados</label>
+                <a class="btn ghost small" th:href="@{/painel/mapa}">↻ Atualizar</a>
+            </div>
+        </div>
+        <div class="card" style="padding:12px">
+            <div id="mapa" role="region" aria-label="Mapa dos equipamentos e chamados"></div>
+            <div class="map-legend" style="margin-top:10px">
+                <strong>Equipamentos:</strong>
+                <span><i class="dot" style="background:#c62828"></i>risco máximo</span>
+                <span><i class="dot" style="background:#d9730d"></i>alerta</span>
+                <span><i class="dot" style="background:#607d8b"></i>sem comunicação</span>
+                <span><i class="dot" style="background:#2e7d4f"></i>normal</span>
+                <strong style="margin-left:10px">Chamados:</strong>
+                <span><i class="sq" style="background:#7f1414"></i>crítica</span>
+                <span><i class="sq" style="background:#e65100"></i>alta</span>
+                <span><i class="sq" style="background:#c9a400"></i>média</span>
+                <span><i class="sq" style="background:#5b8f6f"></i>baixa</span>
+            </div>
+            <p class="empty" id="mapa-erro" style="display:none">Não foi possível carregar o mapa (sem internet para as camadas do OpenStreetMap).</p>
+        </div>
+    </main>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script th:inline="javascript">
+    (function () {
+        var pontos = /*[[${pontos}]]*/ [];
+        var base = /*[[@{/}]]*/ '/';
+        if (typeof L === 'undefined') {
+            document.getElementById('mapa').style.display = 'none';
+            document.getElementById('mapa-erro').style.display = 'block';
+            return;
+        }
+        var sensorColor = { alarm: '#c62828', warning: '#d9730d', offline: '#607d8b', normal: '#2e7d4f' };
+        var reportColor = { critical: '#7f1414', high: '#e65100', medium: '#c9a400', low: '#5b8f6f' };
+        var map = L.map('mapa', { zoomControl: true });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+        var sensores = L.layerGroup().addTo(map);
+        var raios = L.layerGroup().addTo(map);
+        var chamados = L.layerGroup().addTo(map);
+        var bounds = [];
+        function esc(text) {
+            return String(text == null ? '' : text).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+        pontos.forEach(function (p) {
+            var link = base.replace(/\/$/, '') + p.link;
+            var popup = '<strong>' + esc(p.label) + '</strong><br>' + esc(p.detail)
+                + '<br><a href="' + esc(link) + '">Abrir no painel →</a>';
+            bounds.push([p.lat, p.lng]);
+            if (p.kind === 'sensor') {
+                var color = sensorColor[p.status] || '#2e7d4f';
+                L.circle([p.lat, p.lng], { radius: p.radius, color: color, weight: 1, fillColor: color, fillOpacity: 0.08 })
+                    .addTo(raios);
+                L.circleMarker([p.lat, p.lng], { radius: p.status === 'alarm' ? 11 : 9, color: '#fff', weight: 2,
+                    fillColor: color, fillOpacity: 1 }).bindPopup(popup).bindTooltip(esc(p.label)).addTo(sensores);
+            } else {
+                var icon = L.divIcon({ className: '', iconSize: [16, 16], iconAnchor: [8, 8],
+                    html: '<div style="width:14px;height:14px;border-radius:4px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);background:'
+                        + (reportColor[p.status] || '#c9a400') + '"></div>' });
+                L.marker([p.lat, p.lng], { icon: icon }).bindPopup(popup).bindTooltip(esc(p.label)).addTo(chamados);
+            }
+        });
+        if (bounds.length) {
+            map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
+        } else {
+            map.setView([-23.5515, -46.6357], 14);
+        }
+        function toggle(id, layer) {
+            document.getElementById(id).addEventListener('change', function (e) {
+                if (e.target.checked) { layer.addTo(map); } else { map.removeLayer(layer); }
+            });
+        }
+        toggle('ver-sensores', sensores);
+        toggle('ver-raio', raios);
+        toggle('ver-chamados', chamados);
+    })();
+</script>
+</body>
+</html>

@@ -154,9 +154,10 @@ Base: `/api`. Rotas protegidas recebem `Authorization: Bearer <token>`. Os erros
 | `POST /reports` | morador | JSON ou multipart (`report` = JSON, `photo` = imagem). 409 `REPORT_COOLDOWN` |
 | `PATCH /reports/{id}` | morador | Edita em `received`; sem nova foto, mantém a anterior |
 | `DELETE /reports/{id}` | morador | Exclusão lógica em `received` → 204 |
-| `PATCH /reports/{id}/status` | operadora | `status`, `resolution`, `progressNote` |
+| `PATCH /reports/{id}/status` | operadora | `status`, `resolution`, `progressNote` e `outcome` opcional (`resolved`, `stabilized`, `unfounded`, `forwarded`) |
 | `POST /reports/{id}/updates` | morador | Complemento (nota e/ou foto) sem novo protocolo |
 | `POST /reports/{id}/assessment` | operadora | Solicita avaliação técnica (1–600 caracteres) |
+| `POST /reports/{id}/reopen` | operadora | Reabre um protocolo encerrado (o problema voltou), com motivo |
 | `GET /coverage?latitude=&longitude=` | autenticado | `{ sensorId, status }` ou ambos `null` |
 | `GET /sensors` · `GET /sensors/{id}` | operadora / admin | Mapa e ficha: estado, volume, previsão, amostras e eventos |
 | `POST /sensors/{id}/insights` | operadora / admin | **Spring AI**: `{ summary, aiGenerated, indicators }` |
@@ -175,10 +176,10 @@ Respostas de autorização: **401** para sessão ausente ou inválida e **403** 
 
 | # | Requisito | Onde está |
 | --- | --- | --- |
-| 01 | API REST com ≥ 3 entidades relacionadas, CRUD com Spring Data JPA e paginação | 10 entidades (`AppUser`, `Sensor`, `SensorReading`, `SensorEvent`, `Report`, `ReportUpdate`, `StoredFile`, `Notification`, `AlertRecipient`, `EmailLog`). CRUD de equipamentos e relatos. `PageRequest` + cabeçalhos `X-Total-*` (`common/PageResponses`) |
+| 01 | API REST com ≥ 3 entidades relacionadas, CRUD com Spring Data JPA e paginação | 11 entidades (`AppUser`, `Sensor`, `SensorReading`, `SensorEvent`, `Report`, `ReportUpdate`, `ReportHistory`, `StoredFile`, `Notification`, `AlertRecipient`, `EmailLog`). CRUD de equipamentos e relatos. `PageRequest` + cabeçalhos `X-Total-*` (`common/PageResponses`) |
 | 02 | Bean Validation nos DTOs + `@RestControllerAdvice` | DTOs `record` com `@NotBlank`, `@Size`, `@Pattern`, `@Positive` e `@DecimalMin/Max`, mais `common/GlobalExceptionHandler` com `ErrorResponse` padronizado |
 | 03 | Spring Security + JWT com ≥ 2 papéis | `config/SecurityConfig` (resource server, HS256), `TokenService`, papéis `resident`/`operator`/`admin`, `hasRole` nas rotas e `@PreAuthorize` nos controllers, propriedade do relato checada no serviço |
-| 04 | Spring AI integrado ao fluxo | `insight/InsightService` com `ChatClient` (detalhes abaixo) |
+| 04 | Spring AI integrado ao fluxo | `insight/InsightService` (insights do equipamento) e `insight/OperationsAiService` (resposta ao morador e boletim operacional), ambos com `ChatClient` |
 | 05 | Arquitetura distribuída | **Opção A, RabbitMQ**: `messaging/*`, `telemetry/TelemetryProcessor`, `notification/NotificationService` |
 | 06 | Swagger, README e integração com o Mobile | springdoc em `/api/swagger-ui.html` com autenticação Bearer. Contrato do SaneiaMobile implementado campo a campo |
 
@@ -222,12 +223,22 @@ O modelo **não define alarmes nem substitui as medições**. Sem `GEMINI_API_KE
 
 | Tela | O que mostra / permite |
 | --- | --- |
+| **Mapa ao vivo** | Mapa (Leaflet + OpenStreetMap) com os equipamentos coloridos por estado, o **raio de cobertura** de cada um e os chamados abertos coloridos pela prioridade, com filtros de camada |
 | **Visão geral** | Chamados abertos, recebidos, em atendimento e encerrados (barra de estado), recorrências, **tempo médio de atendimento**, equipamentos por estado, chamados por categoria, e-mails enviados em 24 h, mapa de risco por área, pontos que precisam de atenção, últimos eventos e chamados. Atualiza a cada 30 s |
 | **Risco por área** | Nível por bairro/região: **Risco máximo** (equipamento em alarme), **Alto** (alerta, recorrência ou 3+ chamados), **Moderado** (offline ou chamado aberto) e **Baixo** |
-| **Chamados** | Todos os protocolos, com filtro por status, busca e opção de incluir excluídos. O detalhe mostra o relato, a foto, a localização no mapa, os complementos e o formulário para **atualizar o atendimento** (o morador é notificado) |
+| **Chamados** | Filtros por status, prioridade, **fora do prazo** e busca; **ações em lote** (iniciar, encerrar em atendimento conjunto, atribuir, priorizar) e **exportação CSV** |
+| **Detalhe do chamado** | **Edição completa** (categoria, descrição, endereço, bairro, **prioridade**, **responsável** e **vínculo manual com o sensor**), atendimento com **tipo de desfecho**, **reabertura** com motivo, **notas internas**, **texto sugerido pela IA** para o morador e **histórico completo** (auditoria) |
 | **Equipamentos** | Volume × limite, previsão, alarmes em 6 meses, gráfico das últimas leituras, eventos e chamados vinculados |
 | **Usuários** | Todas as contas e o formulário para **provisionar operadora e admin** |
 | **Alertas por e-mail** | Destinatários (adicionar, pausar, remover), **e-mail de teste** e registro de cada envio (Enviado, Falhou, Não enviado) |
+
+**Gestão do chamado:**
+
+- **Prioridade e prazo (SLA).** A prioridade é sugerida na abertura: crítica se o sensor da área está em alarme; alta se há recorrência, alerta ou retorno de esgoto; baixa para mau cheiro ou outro problema sem cobertura; média nos demais casos. Os prazos são crítica 4 h, alta 24 h, média 72 h e baixa 7 dias. O painel e a API (campo `overdue`) indicam o que está fora do prazo.
+- **Desfecho tipificado.** Resolvido, Estabilizado (em observação), Sem procedência ou Encaminhado.
+- **Reabertura automática.** Se o chamado foi encerrado como *Estabilizado* e o sensor vinculado volta ao alarme em até 7 dias, o consumidor de `sensor.alert` reabre o protocolo e notifica o morador.
+- **Auditoria.** A tabela `sn_report_history` registra abertura, edições campo a campo, status, prioridade, responsável, vínculo com sensor, reaberturas, complementos e notas internas, cada uma com autor e horário.
+- **IA no atendimento.** O botão *Sugerir andamento/desfecho* redige a mensagem ao morador. O *Boletim operacional* resume a situação do dia para a gestão. Os dois usam Spring AI e têm texto de reserva quando não há chave configurada.
 
 **E-mail de risco máximo:**
 
@@ -252,7 +263,7 @@ Sem SMTP, a API funciona normalmente e o painel registra os alertas como "Não e
 
 ## Banco de dados
 
-- **Nuvem:** Azure SQL Database, com 10 tabelas. O DDL está em [`scripts/script-bd.sql`](scripts/script-bd.sql).
+- **Nuvem:** Azure SQL Database, com 11 tabelas. O DDL está em [`scripts/script-bd.sql`](scripts/script-bd.sql).
 - **Oracle:** [`scripts/script-bd-oracle.sql`](scripts/script-bd-oracle.sql), para o perfil `oracle`.
 - O catálogo (`sn_sensors`) fica separado do histórico (`sn_sensor_readings`) e dos eventos (`sn_sensor_events`).
 - Consultas para comprovar o CRUD direto no banco: [`scripts/consultas-crud.sql`](scripts/consultas-crud.sql).
