@@ -1,0 +1,94 @@
+# =====================================================================================
+# Saneia API · Pipeline de Release (CD) — Azure Pipelines
+# Roda automaticamente quando a CI (saneia-api-ci) termina com sucesso na main e gera
+# um novo artefato. Publica o jar no Azure App Service criado por scripts/azure-infra.sh.
+#
+# Antes de usar, ajuste as variáveis abaixo (ou sobrescreva na tela da pipeline):
+#   AZURE_SERVICE_CONNECTION  nome da Service connection (Azure Resource Manager)
+#   WEBAPP_NAME / RESOURCE_GROUP  mesmos nomes usados no script de infraestrutura
+# =====================================================================================
+trigger: none
+pr: none
+
+resources:
+  pipelines:
+    - pipeline: ci                 # alias usado nos passos abaixo
+      source: saneia-api-ci        # nome da pipeline de Build no Azure DevOps
+      trigger:
+        branches:
+          include:
+            - main
+
+variables:
+  - name: AZURE_SERVICE_CONNECTION
+    value: 'saneia-azure'
+  - name: WEBAPP_NAME
+    value: 'saneia-api-rm000000'
+  - name: RESOURCE_GROUP
+    value: 'rg-saneia-rm000000'
+  - name: ARTIFACT_NAME
+    value: saneia-api
+  - name: API_BASE_URL
+    value: 'https://$(WEBAPP_NAME).azurewebsites.net/api'
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: Release
+    displayName: Deploy no Azure App Service
+    jobs:
+      - deployment: DeployApi
+        displayName: Publicar a API
+        environment: saneia-producao
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: ci
+                  artifact: $(ARTIFACT_NAME)
+                  displayName: Baixar o artefato da CI
+
+                - script: |
+                    echo "Build de origem: $(resources.pipeline.ci.runName) (id $(resources.pipeline.ci.runID))"
+                    echo "Commit: $(resources.pipeline.ci.sourceCommit)"
+                    ls -la "$(Pipeline.Workspace)/ci/$(ARTIFACT_NAME)/target"
+                  displayName: Conferir o artefato recebido
+
+                - task: AzureAppServiceSettings@1
+                  displayName: Atualizar variáveis de ambiente não sensíveis
+                  inputs:
+                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
+                    appName: $(WEBAPP_NAME)
+                    resourceGroupName: $(RESOURCE_GROUP)
+                    appSettings: |
+                      [
+                        { "name": "SPRING_PROFILES_ACTIVE", "value": "azure", "slotSetting": false },
+                        { "name": "SERVER_PORT", "value": "80", "slotSetting": false },
+                        { "name": "APP_BUILD", "value": "$(resources.pipeline.ci.runName)", "slotSetting": false }
+                      ]
+
+                - task: AzureWebApp@1
+                  displayName: Deploy do jar no Web App (Java 21)
+                  inputs:
+                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
+                    appType: webAppLinux
+                    appName: $(WEBAPP_NAME)
+                    resourceGroupName: $(RESOURCE_GROUP)
+                    package: '$(Pipeline.Workspace)/ci/$(ARTIFACT_NAME)/target/saneia-api.jar'
+                    runtimeStack: 'JAVA|21-java21'
+
+                - script: |
+                    echo "Aguardando a API subir em $(API_BASE_URL)"
+                    for tentativa in $(seq 1 30); do
+                      status=$(curl -s -o /dev/null -w '%{http_code}' "$(API_BASE_URL)/actuator/health" || true)
+                      echo "Tentativa $tentativa: HTTP $status"
+                      if [ "$status" = "200" ]; then
+                        curl -s "$(API_BASE_URL)/about"; echo
+                        exit 0
+                      fi
+                      sleep 10
+                    done
+                    echo "A API não respondeu 200 no health check."
+                    exit 1
+                  displayName: Smoke test (health + versão publicada)

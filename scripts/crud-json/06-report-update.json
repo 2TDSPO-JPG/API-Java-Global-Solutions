@@ -1,0 +1,8 @@
+{
+  "_rota": "PATCH /api/reports/{id}  (morador, enquanto o status é received)",
+  "category": "Retorno de esgoto",
+  "description": "Esgoto voltando pelo ralo do banheiro e da cozinha.",
+  "address": "Rua das Palmeiras, 230 - fundos",
+  "neighborhood": "Setor Leste",
+  "coordinate": { "latitude": -23.5531, "longitude": -46.6292 }
+}

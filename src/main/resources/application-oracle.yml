@@ -1,0 +1,8 @@
+# Perfil Oracle (ex.: oracle.fiap.com.br). Ative com SPRING_PROFILES_ACTIVE=oracle.
+# DB_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521/ORCL  DB_USER=rmXXXXX  DB_PASSWORD=******
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: oracle.jdbc.OracleDriver

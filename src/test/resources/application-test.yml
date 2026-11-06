@@ -1,0 +1,35 @@
+# Perfil dos testes automatizados (CI): H2 em memória e mensageria inline (sem broker).
+spring:
+  datasource:
+    url: jdbc:h2:mem:saneia-test;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+management:
+  health:
+    rabbit:
+      enabled: false
+
+saneia:
+  security:
+    jwt-secret: test-secret-for-ci-only-0123456789abcdefghijkl
+  telemetry:
+    device-key: test-device-key
+    offline-check: PT1H
+  messaging:
+    mode: inline
+  seed:
+    enabled: true
+    demo-data: false
+    admin-email: admin@saneia.test
+    admin-password: Teste2026!
+    operator-email: operadora@saneia.test
+    operator-password: Teste2026!
+    resident-email: morador@saneia.test
+    resident-password: Teste2026!

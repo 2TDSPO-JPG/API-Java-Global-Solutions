@@ -1,0 +1,5 @@
+{
+  "_rota": "PATCH /api/reports/{id}/status  (operadora encerra com desfecho)",
+  "status": "closed",
+  "resolution": "Rede desobstruída e reservatório esvaziado pela equipe."
+}

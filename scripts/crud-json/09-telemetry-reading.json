@@ -1,0 +1,7 @@
+{
+  "_rota": "POST /api/telemetry/readings  (cabeçalho X-Device-Key)",
+  "prefix": "RES-07",
+  "volume": 1820,
+  "levelCm": 182,
+  "source": "Wokwi"
+}

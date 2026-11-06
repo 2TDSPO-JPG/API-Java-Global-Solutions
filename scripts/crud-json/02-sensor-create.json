@@ -1,0 +1,12 @@
+{
+  "_rota": "POST /api/admin/sensors  (Authorization: Bearer <token do admin>)",
+  "prefix": "RES-21",
+  "name": "Reservatório 21",
+  "equipmentType": "Reservatório com sensor de nível",
+  "address": "Rua das Palmeiras, 210",
+  "neighborhood": "Setor Leste",
+  "coordinate": { "latitude": -23.5530, "longitude": -46.6290 },
+  "capacity": 2000,
+  "limit": 1800,
+  "radiusMeters": 200
+}

@@ -1,0 +1,129 @@
+# Configuração base do Saneia API.
+# Todos os valores sensíveis vêm de variáveis de ambiente (nenhuma senha real fica no código).
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+  # Necessário atrás do proxy HTTPS do Azure App Service para gerar URLs de foto corretas
+  forward-headers-strategy: framework
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: saneia-api
+  profiles:
+    default: local
+
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:saneia;DB_CLOSE_DELAY=-1}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      # update cria/ajusta as tabelas descritas em scripts/script-bd.sql quando ainda não existem
+      ddl-auto: ${DDL_AUTO:update}
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        use_nationalized_character_data: true
+
+  servlet:
+    multipart:
+      max-file-size: 8MB
+      max-request-size: 10MB
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        default-requeue-rejected: false
+        retry:
+          enabled: true
+          max-attempts: 3
+          initial-interval: 1s
+
+  ai:
+    # Gemini pela API compatível com OpenAI. Sem GEMINI_API_KEY a API usa um resumo calculado (fallback).
+    openai:
+      api-key: ${GEMINI_API_KEY:desativado}
+      base-url: ${AI_BASE_URL:https://generativelanguage.googleapis.com/v1beta/openai}
+      chat:
+        completions-path: ${AI_COMPLETIONS_PATH:/chat/completions}
+        options:
+          model: ${AI_MODEL:gemini-2.5-flash}
+          temperature: 0.2
+    model:
+      chat: openai
+      embedding: none
+      image: none
+      audio:
+        speech: none
+        transcription: none
+      moderation: none
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+  default-produces-media-type: application/json
+
+info:
+  app:
+    name: Saneia API
+    version: '@project.version@'
+    build: ${APP_BUILD:local}
+    message: ${APP_MESSAGE:Monitoramento e atendimento para o saneamento local}
+
+management:
+  info:
+    env:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    rabbit:
+      enabled: ${RABBIT_HEALTH:true}
+
+saneia:
+  security:
+    # Segredo HS256 com no mínimo 32 caracteres. Em produção vem da variável JWT_SECRET (pipeline/App Service).
+    jwt-secret: ${JWT_SECRET:}
+    token-ttl: ${JWT_TTL:PT12H}
+    cors-origins: ${CORS_ORIGINS:*}
+  files:
+    # Segredo para assinar as URLs das fotos. Sem valor, deriva do JWT_SECRET.
+    signing-secret: ${FILE_SIGNING_SECRET:}
+    url-ttl: PT2H
+  messaging:
+    # rabbit = eventos via RabbitMQ (padrão) | inline = mesmo fluxo, executado após o commit sem broker
+    mode: ${SANEIA_MESSAGING_MODE:rabbit}
+  telemetry:
+    device-key: ${DEVICE_KEY:}
+    default-expected-interval-minutes: ${TELEMETRY_INTERVAL_MINUTES:30}
+    warning-ratio: 0.85
+    forecast-window-hours: 12
+    stable-readings-to-normalize: 2
+    offline-check: PT1M
+  seed:
+    # Contas provisionadas pelo backend (o cadastro público cria apenas moradores)
+    enabled: ${SEED_ENABLED:true}
+    demo-data: ${SEED_DEMO_DATA:true}
+    admin-email: ${SEED_ADMIN_EMAIL:admin@saneia.test}
+    admin-password: ${SEED_ADMIN_PASSWORD:}
+    operator-email: ${SEED_OPERATOR_EMAIL:operadora@saneia.test}
+    operator-password: ${SEED_OPERATOR_PASSWORD:}
+    resident-email: ${SEED_RESIDENT_EMAIL:morador@saneia.test}
+    resident-password: ${SEED_RESIDENT_PASSWORD:}

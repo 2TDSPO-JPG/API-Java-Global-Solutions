@@ -1,0 +1,5 @@
+{
+  "_rota": "PATCH /api/reports/{id}/status  (Authorization: Bearer <token da operadora>)",
+  "status": "in_progress",
+  "progressNote": "Equipe acionada para vistoria hoje à tarde."
+}

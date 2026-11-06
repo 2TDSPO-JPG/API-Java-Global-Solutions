@@ -1,0 +1,6 @@
+{
+  "_rota": "POST /api/auth/signup",
+  "name": "Ana Moradora",
+  "email": "ana@saneia.test",
+  "password": "SenhaForte1"
+}

@@ -1,0 +1,44 @@
+flowchart LR
+    subgraph Cidadao["Usuários"]
+        M["📱 App Expo<br/>morador · operadora · admin"]
+        W["🔧 Wokwi<br/>sensor de nível"]
+    end
+
+    subgraph Azure["☁️ Microsoft Azure · rg-saneia-RM (criado por scripts/azure-infra.sh)"]
+        subgraph AppService["Azure App Service (Linux · Java 21)"]
+            API["Saneia API · Spring Boot<br/>REST + Swagger · Spring Security JWT<br/>Spring Data JPA · Spring AI"]
+            C1["Consumidor de leituras<br/>grava histórico · avalia limite<br/>previsão · eventos"]
+            C2["Consumidor de notificações"]
+        end
+        subgraph ACI["Azure Container Instances"]
+            MQ[["RabbitMQ<br/>exchange saneia.events"]]
+        end
+        DB[("Azure SQL Database<br/>8 tabelas")]
+    end
+
+    LLM["🤖 Gemini<br/>(API compatível OpenAI)"]
+
+    subgraph DevOps["Azure DevOps"]
+        B["Boards<br/>tarefas"] --> R["Repos<br/>main protegida + PR"]
+        R --> CI["Pipeline CI<br/>Maven · JUnit · JaCoCo<br/>artefato saneia-api"]
+        CI --> CD["Pipeline Release<br/>deploy automático"]
+    end
+
+    M -- "HTTPS + Bearer JWT" --> API
+    W -- "HiveMQ → POST /telemetry/readings<br/>X-Device-Key" --> API
+    API -- "publica telemetry.reading<br/>report.* · sensor.*" --> MQ
+    MQ -- "fila saneia.telemetry.readings" --> C1
+    MQ -- "fila saneia.notifications" --> C2
+    C1 -- "publica sensor.alert" --> MQ
+    API <--> DB
+    C1 --> DB
+    C2 --> DB
+    API -- "indicadores calculados → resumo" --> LLM
+    CD -- "AzureWebApp@1" --> AppService
+
+    subgraph Legenda["Legenda"]
+        L1["Retângulo: serviço/aplicação"]
+        L2[["Barra dupla: broker de mensagens"]]
+        L3[("Cilindro: banco de dados")]
+        L4["Seta: fluxo síncrono (HTTP/JDBC) ou evento assíncrono (fila)"]
+    end

@@ -1,0 +1,8 @@
+{
+  "_rota": "POST /api/reports  (Authorization: Bearer <token do morador>)",
+  "category": "Retorno de esgoto",
+  "description": "Esgoto voltando pelo ralo do banheiro desde ontem à noite.",
+  "address": "Rua das Palmeiras, 230",
+  "neighborhood": "Setor Leste",
+  "coordinate": { "latitude": -23.5531, "longitude": -46.6292 }
+}

@@ -1,0 +1,11 @@
+# Perfil local (padrão): H2 em memória para subir a API sem instalar banco.
+# Os valores abaixo valem só para desenvolvimento na máquina; em nuvem tudo vem das variáveis de ambiente.
+saneia:
+  security:
+    jwt-secret: ${JWT_SECRET:local-dev-secret-change-me-0123456789abcdef}
+  telemetry:
+    device-key: ${DEVICE_KEY:local-device-key}
+  seed:
+    admin-password: ${SEED_ADMIN_PASSWORD:Saneia2026!}
+    operator-password: ${SEED_OPERATOR_PASSWORD:Saneia2026!}
+    resident-password: ${SEED_RESIDENT_PASSWORD:Saneia2026!}

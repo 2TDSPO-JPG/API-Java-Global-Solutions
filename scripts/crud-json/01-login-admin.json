@@ -1,0 +1,5 @@
+{
+  "_rota": "POST /api/auth/login",
+  "email": "admin@saneia.test",
+  "password": "Saneia2026!"
+}

@@ -1,0 +1,92 @@
+# =====================================================================================
+# Saneia API · Pipeline de Build (CI) — Azure Pipelines
+# Dispara a cada commit na main (o merge do PR), compila, roda os testes automatizados,
+# publica os resultados JUnit, a cobertura (JaCoCo) e o artefato (jar + scripts).
+# Nome sugerido no Azure DevOps: saneia-api-ci  (a Release referencia esse nome)
+# =====================================================================================
+trigger:
+  branches:
+    include:
+      - main
+
+# Build apenas após o merge na main via PR (validação de PR fica na política de branch, se desejar)
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - name: JAVA_VERSION
+    value: '21'
+  - name: MAVEN_CACHE_FOLDER
+    value: $(Pipeline.Workspace)/.m2/repository
+  - name: MAVEN_OPTS
+    value: '-Dmaven.repo.local=$(MAVEN_CACHE_FOLDER) -Xmx1024m'
+  - name: SPRING_PROFILES_ACTIVE
+    value: test
+  - name: ARTIFACT_NAME
+    value: saneia-api
+
+stages:
+  - stage: Build
+    displayName: Build e testes
+    jobs:
+      - job: Maven
+        displayName: Compilar, testar e empacotar
+        steps:
+          - checkout: self
+            fetchDepth: 0
+
+          - task: Cache@2
+            displayName: Cache das dependências Maven
+            inputs:
+              key: 'maven | "$(Agent.OS)" | pom.xml'
+              restoreKeys: |
+                maven | "$(Agent.OS)"
+              path: $(MAVEN_CACHE_FOLDER)
+
+          - script: |
+              jdk_var="JAVA_HOME_${JAVA_VERSION}_X64"
+              export JAVA_HOME="${!jdk_var}"
+              export PATH="$JAVA_HOME/bin:$PATH"
+              java -version
+              chmod +x mvnw
+              ./mvnw -B -ntp clean verify
+            displayName: Maven verify (compila + testes JUnit + JaCoCo)
+            env:
+              JAVA_VERSION: $(JAVA_VERSION)
+              SPRING_PROFILES_ACTIVE: $(SPRING_PROFILES_ACTIVE)
+              MAVEN_OPTS: $(MAVEN_OPTS)
+
+          - task: PublishTestResults@2
+            displayName: Publicar resultados dos testes (JUnit)
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: JUnit
+              testResultsFiles: '**/surefire-reports/TEST-*.xml'
+              testRunTitle: 'Saneia API - testes automatizados'
+              failTaskOnFailedTests: true
+
+          - task: PublishCodeCoverageResults@2
+            displayName: Publicar cobertura de código (JaCoCo)
+            condition: succeededOrFailed()
+            inputs:
+              summaryFileLocation: '$(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml'
+
+          - task: CopyFiles@2
+            displayName: Separar o pacote e os scripts
+            inputs:
+              SourceFolder: $(System.DefaultWorkingDirectory)
+              Contents: |
+                target/saneia-api.jar
+                scripts/**
+                dockerfiles/**
+              TargetFolder: $(Build.ArtifactStagingDirectory)
+              flattenFolders: false
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publicar artefato saneia-api
+            inputs:
+              targetPath: $(Build.ArtifactStagingDirectory)
+              artifact: $(ARTIFACT_NAME)
+              publishLocation: pipeline

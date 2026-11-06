@@ -1,0 +1,16 @@
+# Perfil de nuvem: Azure SQL Database + RabbitMQ no Azure Container Instances.
+# Todas as variáveis são definidas no App Service pelo script scripts/azure-infra.sh e pela pipeline.
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 60000  # Azure SQL serverless pode levar ~1 min para retomar após pausa
+
+logging:
+  level:
+    root: INFO
+    br.com.saneia: INFO

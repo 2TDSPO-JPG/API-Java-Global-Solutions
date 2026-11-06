@@ -1,0 +1,14 @@
+GLOBAL SOLUTION 2026/2 - CITIZENTECH
+Projeto: Saneia - monitoramento e atendimento para o saneamento local
+Turma: 2TDS (fevereiro)
+
+Integrantes (RM - nome completo - turma):
+RM______ - __________________________________ - 2TDS____
+RM______ - __________________________________ - 2TDS____
+RM______ - __________________________________ - 2TDS____
+RM______ - __________________________________ - 2TDS____
+
+Repositório (Java Advanced): https://github.com/2TDSPO-JPG/API-Java-Global-Solutions
+Vídeo pitch (até 5 min): https://youtu.be/__________
+Deploy da API: https://saneia-api-rm______.azurewebsites.net/api/swagger-ui.html
+App mobile: https://github.com/2TDSPO-JPG/SaneiaMobile
