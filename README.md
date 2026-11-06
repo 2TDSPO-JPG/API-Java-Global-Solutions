@@ -376,9 +376,8 @@ Na solução, a IA generativa aparece na funcionalidade de **insights** (Spring 
 
 | Nome | RM | Turma |
 | --- | --- | --- |
-| _preencher_ | _rm_ | 2TDS |
-| _preencher_ | _rm_ | 2TDS |
-| _preencher_ | _rm_ | 2TDS |
-| _preencher_ | _rm_ | 2TDS |
+| Pedro Ferreira | RM565824 | 2TDSPO |
+| Jonas Santos | RM563234 | 2TDSPO |
+| Gabriel Muller | RM561995 | 2TDSPO |
 
 Repositório do app mobile: https://github.com/2TDSPO-JPG/SaneiaMobile
