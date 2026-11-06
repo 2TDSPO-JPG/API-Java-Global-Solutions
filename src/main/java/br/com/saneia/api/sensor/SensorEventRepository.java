@@ -23,4 +23,9 @@ public interface SensorEventRepository extends JpaRepository<SensorEvent, Long> 
             + "and (e.endedAt is null or e.endedAt >= :from) order by e.startedAt asc")
     List<SensorEvent> findOverlapping(@Param("sensorId") Long sensorId, @Param("from") Instant from,
             @Param("to") Instant to);
+
+    /** Eventos mais recentes de todos os equipamentos (painel). */
+    List<SensorEvent> findTop10ByOrderByStartedAtDescIdDesc();
+
+    long countByKindAndEndedAtIsNull(EventKind kind);
 }

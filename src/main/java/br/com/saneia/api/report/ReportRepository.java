@@ -6,10 +6,11 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface ReportRepository extends JpaRepository<Report, Long> {
+public interface ReportRepository extends JpaRepository<Report, Long>, JpaSpecificationExecutor<Report> {
 
     /** Relatos visíveis do morador. Os recorrentes em aberto vêm primeiro (mesma ordem do app). */
     @Query(value = "select r from Report r where r.owner.id = :ownerId and r.deletedAt is null "
@@ -32,4 +33,23 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
     List<Report> findByOwnerIdAndCategoryAndStatusNot(Long ownerId, String category, ReportStatus status);
 
     boolean existsByProtocol(String protocol);
+
+    // ------------------------------------------------------------ painel administrativo
+
+    long countByStatusAndDeletedAtIsNull(ReportStatus status);
+
+    long countByDeletedAtIsNullAndStatusNotAndPreviousReportIsNotNull(ReportStatus status);
+
+    long countByDeletedAtIsNotNull();
+
+    List<Report> findByStatusAndDeletedAtIsNullAndClosedAtIsNotNull(ReportStatus status);
+
+    /** Chamados abertos (não encerrados e não excluídos), usados no mapa de risco por área. */
+    List<Report> findByDeletedAtIsNullAndStatusNot(ReportStatus status);
+
+    long countByNeighborhoodIgnoreCaseAndStatusNotAndDeletedAtIsNull(String neighborhood, ReportStatus status);
+
+    List<Report> findTop8ByDeletedAtIsNullOrderByCreatedAtDescIdDesc();
+
+    List<Report> findBySensorIdAndDeletedAtIsNullOrderByCreatedAtDesc(Long sensorId);
 }

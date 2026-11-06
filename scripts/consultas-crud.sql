@@ -30,3 +30,7 @@ SELECT TOP 10 e.id, s.prefix, e.event_kind, e.severity, e.started_at, e.ended_at
 FROM sn_sensor_events e JOIN sn_sensors s ON s.id = e.sensor_id ORDER BY e.id DESC;
 SELECT TOP 10 id, recipient_user_id, recipient_role, notification_type, title, created_at
 FROM sn_notifications ORDER BY id DESC;
+
+/* ---------- Alertas de risco máximo (painel /api/painel/alertas) ---------- */
+SELECT id, full_name, email, active FROM sn_alert_recipients ORDER BY id;
+SELECT TOP 10 id, recipient, subject, delivery_status, error_message, created_at FROM sn_email_logs ORDER BY id DESC;

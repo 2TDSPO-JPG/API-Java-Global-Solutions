@@ -36,6 +36,23 @@ spring:
       max-file-size: 8MB
       max-request-size: 10MB
 
+  # SMTP do e-mail de alerta: defina SPRING_MAIL_HOST, SPRING_MAIL_PORT, SPRING_MAIL_USERNAME e SPRING_MAIL_PASSWORD
+  # (ex.: smtp.gmail.com, 587, sua conta e uma senha de app). Sem SPRING_MAIL_HOST o envio fica registrado como "não enviado".
+  mail:
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+
+  thymeleaf:
+    cache: ${THYMELEAF_CACHE:true}
+
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
@@ -96,8 +113,17 @@ management:
   health:
     rabbit:
       enabled: ${RABBIT_HEALTH:true}
+    mail:
+      enabled: false
 
 saneia:
+  # URL pública da API (usada nos links do e-mail para o painel)
+  public-url: ${PUBLIC_URL:http://localhost:8080/api}
+  mail:
+    enabled: ${MAIL_ENABLED:true}
+    from: ${MAIL_FROM:Saneia Alertas <no-reply@saneia.app>}
+    # Destinatários fixos (separados por vírgula). Outros podem ser cadastrados no painel em Alertas.
+    recipients: ${ALERT_EMAILS:}
   security:
     # Segredo HS256 com no mínimo 32 caracteres. Em produção vem da variável JWT_SECRET (pipeline/App Service).
     jwt-secret: ${JWT_SECRET:}

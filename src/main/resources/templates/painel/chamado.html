@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Chamado', false)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main th:with="r=${c.row}">
+        <div class="top">
+            <div>
+                <a class="small" th:href="@{/painel/chamados}">← Chamados</a>
+                <h1 th:text="${r.protocol}">SAN</h1>
+                <p class="sub" th:text="${r.category} + ' · ' + ${r.neighborhood}">—</p>
+            </div>
+            <div class="row">
+                <span class="tag" th:if="${r.recurrent}">prioridade por recorrência</span>
+                <span class="tag grey" th:if="${r.deleted}">excluído pelo morador</span>
+                <span class="badge" th:classappend="'b-' + ${r.status}" th:text="${@fmt.status(r.status)}">—</span>
+            </div>
+        </div>
+        <div th:replace="~{painel/fragments :: flash}"></div>
+        <section class="grid g3">
+            <div class="card span2">
+                <h2>Relato do morador</h2>
+                <p style="white-space:pre-line;margin-top:0" th:text="${c.description}">descrição</p>
+                <dl class="kv">
+                    <dt>Morador</dt><dd th:text="${r.ownerName} + ' · ' + ${r.ownerEmail}">—</dd>
+                    <dt>Endereço</dt><dd th:text="${r.address}">—</dd>
+                    <dt>Coordenadas</dt>
+                    <dd><a target="_blank" rel="noopener"
+                           th:href="'https://www.openstreetmap.org/?mlat=' + ${c.latitude} + '&amp;mlon=' + ${c.longitude} + '#map=18/' + ${c.latitude} + '/' + ${c.longitude}"
+                           th:text="${c.latitude} + ', ' + ${c.longitude}">ver no mapa</a></dd>
+                    <dt>Sensor vinculado</dt><dd th:text="${r.sensorPrefix != null} ? ${r.sensorPrefix} : 'Sem cobertura de sensor'">—</dd>
+                    <dt>Aberto em</dt><dd th:text="${@fmt.dataHora(r.createdAt)}">—</dd>
+                    <dt>Encerrado em</dt><dd th:text="${@fmt.dataHora(r.closedAt)}">—</dd>
+                    <dt>Protocolo anterior</dt>
+                    <dd><a th:if="${c.previousId != null}" th:href="@{/painel/chamados/{id}(id=${c.previousId})}" th:text="${c.previousProtocol}"></a>
+                        <span th:if="${c.previousId == null}">—</span></dd>
+                </dl>
+                <div th:if="${c.photoUrl != null}" style="margin-top:14px">
+                    <img th:src="${c.photoUrl}" alt="Foto do relato" style="max-width:100%;max-height:340px;border-radius:10px;border:1px solid var(--line)">
+                </div>
+            </div>
+            <div class="card">
+                <h2>Atendimento</h2>
+                <dl class="kv" style="grid-template-columns:1fr">
+                    <dt>Nota de andamento</dt><dd th:text="${c.progressNote != null} ? ${c.progressNote} : '—'">—</dd>
+                    <dt>Desfecho</dt><dd th:text="${c.resolution != null} ? ${c.resolution} : '—'">—</dd>
+                    <dt>Avaliação técnica</dt>
+                    <dd th:text="${c.assessmentNote != null} ? (${c.assessmentNote} + ' (' + ${@fmt.dataHora(c.assessmentRequestedAt)} + ')') : 'Não solicitada'">—</dd>
+                </dl>
+                <form th:if="${r.status != 'closed' and !r.deleted}" th:action="@{/painel/chamados/{id}/status(id=${r.id})}"
+                      th:object="${statusForm}" method="post" style="margin-top:12px" data-loading="Atualizando atendimento e notificando o morador…">
+                    <label for="status">Novo status</label>
+                    <select id="status" name="status">
+                        <option value="received" th:if="${r.status == 'received'}" selected>Recebido (só nota)</option>
+                        <option value="in_progress" th:selected="${r.status == 'received'}">Em atendimento</option>
+                        <option value="closed" th:if="${r.status == 'in_progress'}">Encerrado</option>
+                    </select>
+                    <label for="progressNote">Nota de andamento</label>
+                    <textarea id="progressNote" th:field="*{progressNote}" maxlength="600" placeholder="Ex.: equipe acionada para vistoria"></textarea>
+                    <label for="resolution">Desfecho (obrigatório para encerrar)</label>
+                    <textarea id="resolution" th:field="*{resolution}" maxlength="600" placeholder="Ex.: rede desobstruída"></textarea>
+                    <button type="submit" style="margin-top:12px;width:100%">Atualizar atendimento</button>
+                </form>
+                <p class="small muted" th:if="${r.status == 'closed'}">Atendimento encerrado.</p>
+            </div>
+        </section>
+        <section class="card" style="margin-top:16px">
+            <h2>Histórico de complementos do morador</h2>
+            <p class="empty" th:if="${c.updates.isEmpty()}">Sem complementos.</p>
+            <ul class="timeline">
+                <li th:each="u : ${c.updates}">
+                    <div class="small muted" th:text="${@fmt.dataHora(u.createdAt)}">data</div>
+                    <div th:text="${u.note != null} ? ${u.note} : '(somente foto)'">nota</div>
+                    <img th:if="${u.photoUrl != null}" th:src="${u.photoUrl}" alt="Foto do complemento"
+                         style="max-width:260px;border-radius:8px;margin-top:6px;border:1px solid var(--line)">
+                </li>
+            </ul>
+        </section>
+    </main>
+</div>
+</body>
+</html>

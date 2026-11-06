@@ -66,6 +66,16 @@
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
+        <!-- Painel administrativo (Thymeleaf) e e-mail de alerta de risco máximo -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- Mensageria assíncrona (requisito 5, opção A) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

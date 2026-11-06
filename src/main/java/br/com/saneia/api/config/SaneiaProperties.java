@@ -9,6 +9,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 /** Parâmetros do Saneia lidos de application.yml e de variáveis de ambiente. */
 @ConfigurationProperties(prefix = "saneia")
 public record SaneiaProperties(
+        @DefaultValue("http://localhost:8080/api") String publicUrl,
+        Mail mail,
         Security security,
         Files files,
         Messaging messaging,
@@ -19,6 +21,13 @@ public record SaneiaProperties(
             String jwtSecret,
             @DefaultValue("PT12H") Duration tokenTtl,
             @DefaultValue("*") List<String> corsOrigins) {
+    }
+
+    /** E-mail de alerta de risco máximo (o SMTP vem de spring.mail.*). */
+    public record Mail(
+            @DefaultValue("true") boolean enabled,
+            @DefaultValue("Saneia Alertas <no-reply@saneia.app>") String from,
+            List<String> recipients) {
     }
 
     public record Files(String signingSecret, @DefaultValue("PT2H") Duration urlTtl) {

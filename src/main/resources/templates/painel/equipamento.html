@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Equipamento', true)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main th:with="s=${e.row}">
+        <div class="top">
+            <div>
+                <a class="small" th:href="@{/painel/equipamentos}">← Equipamentos</a>
+                <h1 th:text="${s.prefix} + ' · ' + ${s.name}">RES</h1>
+                <p class="sub" th:text="${s.equipmentType} + ' · ' + ${s.address} + ' · ' + ${s.neighborhood}">—</p>
+            </div>
+            <span class="badge" th:classappend="'b-' + ${s.status} + (${s.status == 'alarm'} ? ' pulse' : '')" th:text="${@fmt.status(s.status)}">—</span>
+        </div>
+        <section class="grid g4">
+            <div class="card kpi" th:classappend="${s.status == 'alarm'} ? 'crit' : (${s.status == 'warning'} ? 'high' : 'brand')">
+                <div class="label">Volume atual</div>
+                <div class="value" th:text="${@fmt.litros(s.volume)}">—</div>
+                <div class="hint" th:text="${s.percent} + '% da capacidade de ' + ${@fmt.litros(s.capacity)}">—</div>
+            </div>
+            <div class="card kpi info">
+                <div class="label">Limite operacional</div>
+                <div class="value" th:text="${@fmt.litros(s.limit)}">—</div>
+                <div class="hint" th:text="${s.limitPercent} + '% da capacidade'">—</div>
+            </div>
+            <div class="card kpi high">
+                <div class="label">Tempo até o limite</div>
+                <div class="value" th:text="${s.etaHours != null} ? ${@fmt.horas(s.etaHours)} : '—'">—</div>
+                <div class="hint">estimativa pelo ritmo das últimas 6 h</div>
+            </div>
+            <div class="card kpi crit">
+                <div class="label">Alarmes em 6 meses</div>
+                <div class="value" th:text="${s.alarmsSixMonths}">0</div>
+                <div class="hint" th:text="'Última leitura ' + ${@fmt.haQuanto(s.lastReadingAt)}">—</div>
+            </div>
+        </section>
+        <section class="card" style="margin-top:16px">
+            <div class="row between"><h2>Últimas leituras</h2><span class="small muted" th:text="${s.reason}"></span></div>
+            <p class="empty" th:if="${e.readings.isEmpty()}">Aguardando a primeira leitura do equipamento.</p>
+            <div class="chart" th:unless="${e.readings.isEmpty()}">
+                <div class="limit-line" th:style="'bottom:' + ${s.limitPercent} + '%'"><span th:text="'limite ' + ${@fmt.litros(s.limit)}"></span></div>
+                <div class="col" th:each="rd : ${e.readings}" th:classappend="${rd.status}"
+                     th:style="'height:' + ${rd.percent} + '%'"
+                     th:title="${@fmt.dataHora(rd.at)} + ' · ' + ${@fmt.litros(rd.volume)} + ' · ' + ${@fmt.status(rd.status)}"></div>
+            </div>
+            <div class="legend"><span><i style="background:#7cc3a7"></i>normal</span><span><i style="background:var(--high)"></i>alerta</span>
+                <span><i style="background:var(--crit)"></i>risco máximo</span><span>passe o mouse em uma barra para ver a leitura</span></div>
+        </section>
+        <section class="grid g2" style="margin-top:16px">
+            <div class="card">
+                <h2>Eventos</h2>
+                <p class="empty" th:if="${e.events.isEmpty()}">Sem eventos.</p>
+                <ul class="timeline">
+                    <li th:each="ev : ${e.events}" th:classappend="${ev.severity}">
+                        <div class="row between"><strong th:text="${@fmt.status(ev.kind)} + ' · ' + ${@fmt.status(ev.severity)}">—</strong>
+                            <span class="small muted" th:text="${@fmt.dataHora(ev.startedAt)}"></span></div>
+                        <div class="small" th:text="${ev.message}"></div>
+                        <div class="small muted" th:text="${ev.endedAt == null} ? 'Em aberto' : ('Encerrado em ' + ${@fmt.dataHora(ev.endedAt)})"></div>
+                    </li>
+                </ul>
+            </div>
+            <div class="card">
+                <h2>Chamados vinculados a este equipamento</h2>
+                <p class="empty" th:if="${e.reports.isEmpty()}">Nenhum chamado na área de cobertura.</p>
+                <div class="table-wrap" th:unless="${e.reports.isEmpty()}">
+                    <table>
+                        <thead><tr><th>Protocolo</th><th>Categoria</th><th>Estado</th><th>Aberto em</th></tr></thead>
+                        <tbody>
+                        <tr th:each="r : ${e.reports}">
+                            <td><a th:href="@{/painel/chamados/{id}(id=${r.id})}" th:text="${r.protocol}">SAN</a></td>
+                            <td th:text="${r.category}">—</td>
+                            <td><span class="badge" th:classappend="'b-' + ${r.status}" th:text="${@fmt.status(r.status)}">—</span></td>
+                            <td class="small" th:text="${@fmt.dataHora(r.createdAt)}">—</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <dl class="kv" style="margin-top:16px">
+                    <dt>Raio de cobertura</dt><dd th:text="${#numbers.formatDecimal(s.radiusMeters, 1, 0)} + ' m'">—</dd>
+                    <dt>Intervalo esperado</dt><dd th:text="${s.expectedIntervalMinutes} + ' min (offline após o dobro)'">—</dd>
+                    <dt>Coordenadas</dt><dd th:text="${e.latitude} + ', ' + ${e.longitude}">—</dd>
+                </dl>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

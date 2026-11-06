@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Entrar', false)}"></head>
+<body>
+<div class="login-wrap">
+    <div class="card login">
+        <div class="row" style="margin-bottom:14px">
+            <span style="width:34px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:linear-gradient(135deg,#43c59e,#0f6b4f)"></span>
+            <div>
+                <h1 style="font-size:20px">Saneia · Painel admin</h1>
+                <p class="sub">Monitoramento e atendimento para o saneamento local</p>
+            </div>
+        </div>
+        <div class="alert err" th:if="${param.erro}">E-mail ou senha incorretos.</div>
+        <div class="alert warn" th:if="${param.negado}">Somente contas de administração acessam o painel.</div>
+        <div class="alert ok" th:if="${param.saiu}">Você saiu do painel.</div>
+        <form th:action="@{/painel/login}" method="post" data-loading="Entrando no painel…">
+            <label for="email">E-mail</label>
+            <input id="email" name="email" type="email" autocomplete="username" required autofocus placeholder="admin@saneia.test">
+            <label for="senha">Senha</label>
+            <input id="senha" name="senha" type="password" autocomplete="current-password" required>
+            <button type="submit" style="width:100%;margin-top:16px">Entrar</button>
+        </form>
+        <p class="small muted" style="margin:14px 0 0">Use uma conta com papel <strong>admin</strong>. Moradores e operadora usam o app.</p>
+    </div>
+</div>
+</body>
+</html>

@@ -1,6 +1,19 @@
-# Perfil local (padrão): H2 em memória para subir a API sem instalar banco.
+# Perfil local (padrão): H2 em memória para subir a API sem instalar nada.
+# Mensageria: "inline" por padrão (roda direto no IntelliJ, sem RabbitMQ).
+# Com o RabbitMQ do docker-compose ligado, use SANEIA_MESSAGING_MODE=rabbit para usar as filas de verdade.
 # Os valores abaixo valem só para desenvolvimento na máquina; em nuvem tudo vem das variáveis de ambiente.
+spring:
+  thymeleaf:
+    cache: false
+
+management:
+  health:
+    rabbit:
+      enabled: ${RABBIT_HEALTH:false}
+
 saneia:
+  messaging:
+    mode: ${SANEIA_MESSAGING_MODE:inline}
   security:
     jwt-secret: ${JWT_SECRET:local-dev-secret-change-me-0123456789abcdef}
   telemetry:

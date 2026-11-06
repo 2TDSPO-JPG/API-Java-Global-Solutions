@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Visão geral', true)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main th:with="k=${d.kpis}">
+        <div class="top">
+            <div>
+                <h1>Visão geral</h1>
+                <p class="sub">Chamados, equipamentos e risco por área em tempo real · atualiza a cada 30 s</p>
+            </div>
+            <div class="row">
+                <span class="badge" th:classappend="${k.smtpConfigured} ? 'b-sent' : 'b-skipped'"
+                      th:text="${k.smtpConfigured} ? 'E-mail de alerta ativo' : 'E-mail de alerta sem SMTP'">SMTP</span>
+                <a class="btn ghost small" th:href="@{/painel/chamados(status='received')}">Fila de recebidos</a>
+            </div>
+        </div>
+
+        <div th:replace="~{painel/fragments :: flash}"></div>
+
+        <div class="alert err pulse" th:if="${d.criticalAreas() > 0}">
+            <strong th:text="${d.criticalAreas()} + ' área(s) em risco máximo'">1 área em risco máximo</strong>
+            · e-mail de alerta disparado aos destinatários cadastrados.
+            <a th:href="@{/painel/areas}">Ver áreas</a>
+        </div>
+
+        <section class="grid g4">
+            <div class="card kpi brand">
+                <div class="label">Chamados abertos</div>
+                <div class="value" th:text="${k.openReports}">0</div>
+                <div class="hint" th:text="${k.received} + ' recebidos · ' + ${k.inProgress} + ' em atendimento'">—</div>
+            </div>
+            <div class="card kpi crit">
+                <div class="label">Áreas em risco máximo</div>
+                <div class="value" th:text="${d.criticalAreas()}">0</div>
+                <div class="hint" th:text="${k.sensorsAlarm} + ' equipamento(s) com limite atingido'">—</div>
+            </div>
+            <div class="card kpi high">
+                <div class="label">Recorrências abertas</div>
+                <div class="value" th:text="${k.recurrentOpen}">0</div>
+                <div class="hint">mesmo problema e local após 20 dias</div>
+            </div>
+            <div class="card kpi info">
+                <div class="label">Tempo médio de atendimento</div>
+                <div class="value" style="font-size:24px" th:text="${k.averageHandling}">—</div>
+                <div class="hint" th:text="${k.closed} + ' chamado(s) encerrado(s)'">—</div>
+            </div>
+        </section>
+
+        <section class="grid g3" style="margin-top:16px">
+            <div class="card">
+                <h2>Estado dos chamados</h2>
+                <div class="stack" th:if="${k.totalReports() > 0}">
+                    <span th:style="'width:' + ${k.percent(k.received)} + '%;background:#d4b300'"></span>
+                    <span th:style="'width:' + ${k.percent(k.inProgress)} + '%;background:#1e5fa8'"></span>
+                    <span th:style="'width:' + ${k.percent(k.closed)} + '%;background:#2e7d4f'"></span>
+                </div>
+                <p class="empty" th:unless="${k.totalReports() > 0}">Nenhum chamado ainda.</p>
+                <div class="legend">
+                    <span><i style="background:#d4b300"></i><span th:text="'Recebido · ' + ${k.received}"></span></span>
+                    <span><i style="background:#1e5fa8"></i><span th:text="'Em atendimento · ' + ${k.inProgress}"></span></span>
+                    <span><i style="background:#2e7d4f"></i><span th:text="'Encerrado · ' + ${k.closed}"></span></span>
+                </div>
+                <p class="small muted" style="margin:12px 0 0" th:text="${k.deleted} + ' excluído(s) pelo morador (mantidos para a regra de 20 dias)'"></p>
+            </div>
+            <div class="card">
+                <h2>Equipamentos</h2>
+                <table>
+                    <tr><td><span class="badge b-alarm">Risco máximo</span></td><td class="right"><strong th:text="${k.sensorsAlarm}">0</strong></td></tr>
+                    <tr><td><span class="badge b-warning">Alerta</span></td><td class="right"><strong th:text="${k.sensorsWarning}">0</strong></td></tr>
+                    <tr><td><span class="badge b-offline">Sem comunicação</span></td><td class="right"><strong th:text="${k.sensorsOffline}">0</strong></td></tr>
+                    <tr><td><span class="badge b-normal">Normal</span></td><td class="right"><strong th:text="${k.sensorsNormal}">0</strong></td></tr>
+                </table>
+            </div>
+            <div class="card">
+                <h2>Abertos por categoria</h2>
+                <div th:if="${categorias.isEmpty()}" class="empty">Sem chamados abertos.</div>
+                <div th:each="cat : ${categorias}" style="margin-bottom:10px">
+                    <div class="row between small"><span th:text="${cat.key}">Categoria</span><strong th:text="${cat.value}">0</strong></div>
+                    <div class="bar"><span th:style="'width:' + ${k.openReports > 0 ? cat.value * 100 / k.openReports : 0} + '%'"></span></div>
+                </div>
+                <p class="small muted" style="margin:12px 0 0"
+                   th:text="'E-mails nas últimas 24 h: ' + ${k.emailsSent24h} + ' enviados · ' + ${k.emailsFailed24h} + ' com falha'"></p>
+            </div>
+        </section>
+
+        <section class="card" style="margin-top:16px">
+            <div class="row between"><h2>Mapa de risco por área</h2><a class="small" th:href="@{/painel/areas}">Detalhar</a></div>
+            <div class="areas">
+                <div class="area" th:each="a : ${d.areas}" th:classappend="${a.level.css}">
+                    <span class="badge" th:classappend="'b-' + ${a.level.css}" th:text="${a.level.label}">Baixo</span>
+                    <h3 th:text="${a.name}">Área</h3>
+                    <div class="meta" th:text="${a.reason}">motivo</div>
+                    <div class="meta" style="margin-top:6px"
+                         th:text="${a.sensors} + ' equip. · ' + ${a.openReports} + ' chamado(s) aberto(s)'">—</div>
+                    <div class="meta" th:if="${!a.alarmPrefixes.isEmpty()}">
+                        Em alarme: <strong th:text="${#strings.listJoin(a.alarmPrefixes, ', ')}">RES-09</strong>
+                    </div>
+                </div>
+            </div>
+            <p class="empty" th:if="${d.areas.isEmpty()}">Nenhuma área com equipamentos ou chamados.</p>
+        </section>
+
+        <section class="grid g2" style="margin-top:16px">
+            <div class="card">
+                <h2>Pontos que precisam de atenção</h2>
+                <p class="empty" th:if="${d.sensorsAtRisk.isEmpty()}">Todos os equipamentos estão normais.</p>
+                <div class="table-wrap" th:unless="${d.sensorsAtRisk.isEmpty()}">
+                    <table>
+                        <thead><tr><th>Equipamento</th><th>Estado</th><th style="width:34%">Volume</th><th>Previsão</th></tr></thead>
+                        <tbody>
+                        <tr th:each="s : ${d.sensorsAtRisk}">
+                            <td><a th:href="@{/painel/equipamentos/{id}(id=${s.id})}" th:text="${s.prefix}">RES</a>
+                                <div class="small muted" th:text="${s.neighborhood}">área</div></td>
+                            <td><span class="badge" th:classappend="'b-' + ${s.status}" th:text="${@fmt.status(s.status)}">—</span></td>
+                            <td>
+                                <div class="bar" th:classappend="${s.status}">
+                                    <span th:style="'width:' + ${s.percent} + '%'"></span>
+                                    <i class="limit" th:style="'left:' + ${s.limitPercent} + '%'"></i>
+                                </div>
+                                <div class="small muted" th:text="${@fmt.litros(s.volume)} + ' de ' + ${@fmt.litros(s.capacity)}">—</div>
+                            </td>
+                            <td class="small" th:text="${s.etaHours != null} ? ('limite em ' + ${@fmt.horas(s.etaHours)}) : '—'">—</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Últimos eventos dos sensores</h2>
+                <p class="empty" th:if="${d.recentEvents.isEmpty()}">Nenhum evento registrado.</p>
+                <ul class="timeline">
+                    <li th:each="ev : ${d.recentEvents}" th:classappend="${ev.severity}">
+                        <div class="row between">
+                            <strong th:text="${ev.sensorPrefix} + ' · ' + ${@fmt.status(ev.severity)}">RES</strong>
+                            <span class="small muted" th:text="${@fmt.dataHora(ev.startedAt)}">data</span>
+                        </div>
+                        <div class="small" th:text="${ev.message}">mensagem</div>
+                        <div class="small muted" th:text="${ev.endedAt == null} ? 'Em aberto' : ('Encerrado em ' + ${@fmt.dataHora(ev.endedAt)})"></div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="card" style="margin-top:16px">
+            <div class="row between"><h2>Últimos chamados</h2><a class="small" th:href="@{/painel/chamados}">Ver todos</a></div>
+            <p class="empty" th:if="${d.recentReports.isEmpty()}">Nenhum chamado aberto ainda.</p>
+            <div class="table-wrap" th:unless="${d.recentReports.isEmpty()}">
+                <table>
+                    <thead><tr><th>Protocolo</th><th>Categoria</th><th>Área</th><th>Morador</th><th>Estado</th><th>Aberto em</th></tr></thead>
+                    <tbody>
+                    <tr th:each="r : ${d.recentReports}">
+                        <td><a th:href="@{/painel/chamados/{id}(id=${r.id})}" th:text="${r.protocol}">SAN</a>
+                            <span class="tag" th:if="${r.recurrent}">recorrente</span></td>
+                        <td th:text="${r.category}">—</td>
+                        <td th:text="${r.neighborhood}">—</td>
+                        <td th:text="${r.ownerName}">—</td>
+                        <td><span class="badge" th:classappend="'b-' + ${r.status}" th:text="${@fmt.status(r.status)}">—</span></td>
+                        <td class="small" th:text="${@fmt.dataHora(r.createdAt)}">—</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

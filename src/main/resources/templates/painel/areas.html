@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Risco por área', true)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main>
+        <div class="top">
+            <div>
+                <h1>Risco por área</h1>
+                <p class="sub">Combina o estado dos equipamentos com os chamados abertos de cada bairro ou região</p>
+            </div>
+        </div>
+        <section class="card" style="margin-bottom:16px">
+            <h2>Como o nível é calculado</h2>
+            <div class="grid g4">
+                <div><span class="badge b-critico">Risco máximo</span><p class="small muted">Algum equipamento atingiu o limite operacional. Dispara e-mail aos destinatários de alerta.</p></div>
+                <div><span class="badge b-alto">Alto</span><p class="small muted">Alerta de nível ou previsão, chamado recorrente aberto ou 3+ chamados abertos.</p></div>
+                <div><span class="badge b-moderado">Moderado</span><p class="small muted">Equipamento sem comunicação ou chamado aguardando atendimento.</p></div>
+                <div><span class="badge b-baixo">Baixo</span><p class="small muted">Sem alertas e sem chamados abertos.</p></div>
+            </div>
+        </section>
+        <section class="card">
+            <p class="empty" th:if="${areas.isEmpty()}">Nenhuma área com equipamentos ou chamados.</p>
+            <div class="table-wrap" th:unless="${areas.isEmpty()}">
+                <table>
+                    <thead><tr><th>Área</th><th>Nível</th><th>Motivo</th><th class="right">Equip.</th><th class="right">Alarme</th>
+                        <th class="right">Alerta</th><th class="right">Offline</th><th class="right">Chamados abertos</th><th class="right">Recorrentes</th></tr></thead>
+                    <tbody>
+                    <tr th:each="a : ${areas}">
+                        <td><strong th:text="${a.name}">Área</strong>
+                            <div class="small muted" th:if="${!a.alarmPrefixes.isEmpty()}" th:text="'Em alarme: ' + ${#strings.listJoin(a.alarmPrefixes, ', ')}"></div></td>
+                        <td><span class="badge" th:classappend="'b-' + ${a.level.css} + (${a.level.css == 'critico'} ? ' pulse' : '')" th:text="${a.level.label}">—</span></td>
+                        <td class="small" th:text="${a.reason}">—</td>
+                        <td class="right" th:text="${a.sensors}">0</td>
+                        <td class="right" th:text="${a.alarms}">0</td>
+                        <td class="right" th:text="${a.warnings}">0</td>
+                        <td class="right" th:text="${a.offline}">0</td>
+                        <td class="right"><a th:href="@{/painel/chamados(q=${a.name})}" th:text="${a.openReports}">0</a></td>
+                        <td class="right" th:text="${a.recurrent}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

@@ -13,7 +13,9 @@
 #   bash scripts/azure-infra.sh
 #
 # Variáveis opcionais: LOCATION, GEMINI_API_KEY, CLIENT_IP (libera seu IP no firewall do SQL para o Query editor),
-#                      SQL_TIER (free | basic), APP_SKU (B1 | F1), SEED_PASSWORD (senha das contas de teste).
+#                      SQL_TIER (free | basic), APP_SKU (B1 | F1), SEED_PASSWORD (senha das contas de teste),
+#                      MAIL_HOST / MAIL_PORT / MAIL_USERNAME / MAIL_PASSWORD (SMTP do e-mail de risco máximo,
+#                      ex.: smtp.gmail.com / 587 / sua conta / senha de app) e ALERT_EMAILS (destinatários fixos).
 # Nenhuma senha fica gravada no repositório: tudo vem de variáveis de ambiente ou é gerado aqui.
 # =====================================================================================
 set -euo pipefail
@@ -40,6 +42,11 @@ FILE_SIGNING_SECRET="${FILE_SIGNING_SECRET:-$(openssl rand -hex 32)}"
 DEVICE_KEY="${DEVICE_KEY:-$(openssl rand -hex 16)}"
 SEED_PASSWORD="${SEED_PASSWORD:-Saneia2026!}"
 GEMINI_API_KEY="${GEMINI_API_KEY:-}"
+MAIL_HOST="${MAIL_HOST:-}"
+MAIL_PORT="${MAIL_PORT:-587}"
+MAIL_USERNAME="${MAIL_USERNAME:-}"
+MAIL_PASSWORD="${MAIL_PASSWORD:-}"
+ALERT_EMAILS="${ALERT_EMAILS:-}"
 
 echo ">> Assinatura atual:"
 az account show --query "{assinatura:name, id:id}" -o table
@@ -126,7 +133,17 @@ az webapp config appsettings set --name "$WEBAPP" --resource-group "$RESOURCE_GR
   SEED_ADMIN_PASSWORD="$SEED_PASSWORD" \
   SEED_OPERATOR_PASSWORD="$SEED_PASSWORD" \
   SEED_RESIDENT_PASSWORD="$SEED_PASSWORD" \
-  SEED_DEMO_DATA=true
+  SEED_DEMO_DATA=true \
+  PUBLIC_URL="https://${WEBAPP}.azurewebsites.net/api" \
+  ALERT_EMAILS="$ALERT_EMAILS"
+
+if [ -n "$MAIL_HOST" ]; then
+  echo ">> SMTP do e-mail de risco máximo (${MAIL_HOST}:${MAIL_PORT})"
+  az webapp config appsettings set --name "$WEBAPP" --resource-group "$RESOURCE_GROUP" -o none --settings \
+    SPRING_MAIL_HOST="$MAIL_HOST" SPRING_MAIL_PORT="$MAIL_PORT" \
+    SPRING_MAIL_USERNAME="$MAIL_USERNAME" SPRING_MAIL_PASSWORD="$MAIL_PASSWORD" \
+    MAIL_FROM="Saneia Alertas <${MAIL_USERNAME}>"
+fi
 
 API_URL="https://${WEBAPP}.azurewebsites.net/api"
 cat <<RESUMO
@@ -138,6 +155,7 @@ cat <<RESUMO
  Web App ............... ${WEBAPP}
  URL da API ............ ${API_URL}
  Swagger ............... ${API_URL}/swagger-ui.html
+ Painel admin .......... ${API_URL}/painel  (admin@saneia.test / senha das contas de teste)
  Azure SQL ............. ${SQL_SERVER}.database.windows.net / banco ${SQL_DB} / usuário ${SQL_ADMIN}
  RabbitMQ (painel) ..... http://${RABBIT_HOST}:15672  usuário ${RABBIT_USER} / senha ${RABBIT_PASSWORD}
  DEVICE_KEY (Wokwi) .... ${DEVICE_KEY}

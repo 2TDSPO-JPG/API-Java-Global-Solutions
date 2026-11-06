@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Teste</title></head>
+<body style="margin:0;padding:24px;background:#f3f5f4;font-family:Segoe UI,Arial,sans-serif;color:#14221c">
+<div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #e2e8e5;border-radius:12px;padding:24px">
+    <div style="font-size:20px;font-weight:700;color:#0f6b4f">Saneia · e-mail de teste</div>
+    <p>O envio de alertas está funcionando (<span th:text="${quando}">agora</span>). Quando um ponto atingir o
+        limite operacional, os destinatários ativos recebem um aviso de risco máximo.</p>
+    <a th:href="${linkPainel}" style="color:#0f6b4f;font-weight:600">Abrir o painel</a>
+</div>
+</body>
+</html>

@@ -93,6 +93,7 @@ Antes de entregar, assista ao vídeo inteiro no YouTube e confira os 11 itens. C
 2. **Solução** (40 s): app + API + sensores. Mostre o desenho de arquitetura.
 3. **Demo do morador** (60 s): cadastro, novo relato com foto, protocolo, regra de 20 dias (409 → complementar o protocolo aberto).
 4. **Demo da operadora** (60 s): rode `scripts/simular-leituras.sh` (ou o Wokwi) e mostre o ponto passando para alerta e depois alarme no mapa. Abra a ficha e clique em **Insights** (Spring AI + Gemini). Atualize o protocolo até o encerramento e mostre a notificação do morador.
+4b. **Painel admin + e-mail** (30 s): abra `/api/painel` com a área em **Risco máximo** piscando, mostre o **e-mail que chegou** no celular ou na caixa de entrada e o registro em *Alertas por e-mail*. Antes da gravação, cadastre seu e-mail em Alertas e use *Enviar e-mail de teste* para conferir o SMTP.
 5. **Por dentro** (50 s): JWT com 3 papéis, Swagger, Bean Validation com o advice, paginação e RabbitMQ (painel com as filas `saneia.*` e a DLQ).
 6. **Impacto e evolução** (30 s): ODS 6 e 11, e o módulo separador de resíduos no pitch.
 
@@ -104,5 +105,7 @@ Antes de entregar, assista ao vídeo inteiro no YouTube e confira os 11 itens. C
 - **Como evita evento perdido ou fantasma?** A publicação acontece depois do commit (`TransactionSynchronization.afterCommit`).
 - **Como o JWT é validado?** Pelo resource server do Spring Security, com HS256 e segredo na variável `JWT_SECRET`. O papel vai na claim `role` e vira `ROLE_*`.
 - **E se o LLM errar números?** Os números vêm do backend. O prompt proíbe inventar valores, e a resposta devolve os `indicators` para conferência. Sem chave, ou com falha, o resumo é calculado.
+- **Como o e-mail de risco máximo é disparado?** O consumidor da leitura detecta o limite e publica `sensor.alert`. Outro consumidor, o de notificações, monta o HTML com Thymeleaf e envia via JavaMailSender. Cada envio fica em `sn_email_logs`, e um alarme contínuo gera um único e-mail.
+- **Por que o painel tem outra cadeia de segurança?** O app usa JWT stateless. O painel web usa sessão com formulário e CSRF, porque é navegação no browser. São dois `SecurityFilterChain`, e o do painel tem `@Order(1)` e `securityMatcher("/painel/**")`.
 - **Por que exclusão lógica?** O contrato exige preservar histórico e vínculos, e a regra dos 20 dias continua valendo após excluir.
 - **Como a Release sabe que tem artefato novo?** Pelo `resources.pipelines` com trigger na CI `saneia-api-ci` (branch main).

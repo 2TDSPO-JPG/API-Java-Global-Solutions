@@ -8,8 +8,10 @@ Backend em **Java 21 + Spring Boot 3.5** do **Saneia**. O Saneia junta leituras 
 | --- | --- |
 | **Deploy (Azure App Service)** | `https://saneia-api-<RM>.azurewebsites.net/api` → *substitua pelo link real após rodar o script* |
 | **Swagger** | `/api/swagger-ui.html` |
+| **Painel admin (Thymeleaf)** | `/api/painel` · login `admin@saneia.test` |
 | **Requisito 5 escolhido** | **Opção A: RabbitMQ**, com eventos publicados e consumidos de forma assíncrona |
 | **IA generativa** | Spring AI (cliente OpenAI) + **Gemini**: resumo dos indicadores de cada equipamento para a operadora |
+| **Alerta por e-mail** | Quando uma área entra em **risco máximo**, o consumidor da fila envia e-mail HTML aos destinatários |
 
 ---
 
@@ -22,12 +24,13 @@ Backend em **Java 21 + Spring Boot 3.5** do **Saneia**. O Saneia junta leituras 
 5. [Requisitos de Java Advanced](#requisitos-de-java-advanced)
 6. [Arquitetura distribuída (RabbitMQ)](#arquitetura-distribuída-rabbitmq)
 7. [Funcionalidade com Spring AI](#funcionalidade-com-spring-ai)
-8. [Banco de dados](#banco-de-dados)
-9. [DevOps e nuvem (Azure)](#devops-e-nuvem-azure)
-10. [CRUD em JSON](#crud-em-json)
-11. [Testes](#testes)
-12. [Declaração de uso de IA](#declaração-de-uso-de-ia)
-13. [Integrantes](#integrantes)
+8. [Painel administrativo e alerta por e-mail](#painel-administrativo-e-alerta-por-e-mail)
+9. [Banco de dados](#banco-de-dados)
+10. [DevOps e nuvem (Azure)](#devops-e-nuvem-azure)
+11. [CRUD em JSON](#crud-em-json)
+12. [Testes](#testes)
+13. [Declaração de uso de IA](#declaração-de-uso-de-ia)
+14. [Integrantes](#integrantes)
 
 ---
 
@@ -43,8 +46,9 @@ Fonte do desenho: [`docs/arquitetura.mmd`](docs/arquitetura.mmd) (Mermaid).
 2. **Leitura do sensor.** Wokwi → HiveMQ → `POST /telemetry/readings` (chave do dispositivo). A API valida a leitura e publica `telemetry.reading` na fila. O consumidor grava o histórico, avalia o limite e a previsão, e abre, agrava ou encerra eventos. Quando o ponto entra em alerta, publica `sensor.alert`.
 3. **Atendimento.** A operadora vê o mapa (`GET /sensors`, consultado a cada 5 s pelo app) e a fila (`GET /reports`). Ela atualiza o protocolo (`received → in_progress → closed`) e o morador é notificado pela fila.
 4. **Insights.** A operadora pede o resumo do período. O backend calcula os indicadores no banco e o LLM só redige a explicação.
+5. **Risco máximo.** Quando um ponto atinge o limite, o consumidor de `sensor.alert` envia um e-mail HTML para os destinatários de alerta e registra cada envio. O painel administrativo mostra o mapa de risco por área em tempo real.
 
-**Pacotes** (`br.com.saneia.api`): `auth` (login/JWT), `user`, `sensor` (catálogo, cobertura, previsão), `telemetry` (ingestão e consumidor), `report` (relatos e regras), `file` (fotos com URL assinada), `insight` (Spring AI), `messaging` (RabbitMQ), `notification`, `common` (erros, paginação, geo) e `config`.
+**Pacotes** (`br.com.saneia.api`): `auth` (login/JWT), `panel` (painel Thymeleaf), `alert` (e-mail de risco máximo), `user`, `sensor` (catálogo, cobertura, previsão), `telemetry` (ingestão e consumidor), `report` (relatos e regras), `file` (fotos com URL assinada), `insight` (Spring AI), `messaging` (RabbitMQ), `notification`, `common` (erros, paginação, geo) e `config`.
 
 ---
 
@@ -52,30 +56,33 @@ Fonte do desenho: [`docs/arquitetura.mmd`](docs/arquitetura.mmd) (Mermaid).
 
 **Pré-requisitos:** JDK 21. O Maven vem junto pelo wrapper `mvnw`. O Docker é opcional e serve para o RabbitMQ.
 
-### Opção 1: API + RabbitMQ com Docker (recomendado)
+### Opção 1: direto no IntelliJ ou no Maven (mais simples)
+
+Rode `SaneiaApiApplication` no IntelliJ ou:
+
+```bash
+./mvnw spring-boot:run          # Windows: .\mvnw.cmd spring-boot:run
+```
+
+No perfil `local`, a mensageria roda em modo **inline**: os mesmos eventos e consumidores, executados logo após o commit, sem precisar do RabbitMQ.
+
+### Opção 2: com RabbitMQ de verdade (filas visíveis no painel do broker)
+
+```bash
+docker compose -f dockerfiles/docker-compose.yml up -d rabbitmq
+SANEIA_MESSAGING_MODE=rabbit RABBIT_HEALTH=true ./mvnw spring-boot:run
+# PowerShell: $env:SANEIA_MESSAGING_MODE="rabbit"; $env:RABBIT_HEALTH="true"; .\mvnw.cmd spring-boot:run
+```
+
+Painel do RabbitMQ: http://localhost:15672 (guest / guest), onde aparecem as filas `saneia.*`.
+
+### Opção 3: tudo em containers
 
 ```bash
 docker compose -f dockerfiles/docker-compose.yml up --build
 ```
 
-- API: http://localhost:8080/api · Swagger: http://localhost:8080/api/swagger-ui.html
-- Painel do RabbitMQ: http://localhost:15672 (guest / guest), onde dá para ver as filas `saneia.*`
-
-### Opção 2: Maven, com o RabbitMQ no Docker
-
-```bash
-docker compose -f dockerfiles/docker-compose.yml up -d rabbitmq
-./mvnw spring-boot:run          # Windows: mvnw.cmd spring-boot:run
-```
-
-### Opção 3: sem Docker (mensageria inline)
-
-O mesmo fluxo de eventos roda no próprio processo, logo após o commit. Use quando não houver RabbitMQ disponível.
-
-```bash
-SANEIA_MESSAGING_MODE=inline ./mvnw spring-boot:run
-# PowerShell: $env:SANEIA_MESSAGING_MODE="inline"; .\mvnw.cmd spring-boot:run
-```
+Nas três opções: API em http://localhost:8080/api · Swagger em http://localhost:8080/api/swagger-ui.html · painel admin em http://localhost:8080/api/painel
 
 O perfil padrão (`local`) usa **H2 em memória** e já cria as contas de teste e um cenário de demonstração: 4 reservatórios com histórico, alarmes e 2 relatos.
 
@@ -96,13 +103,16 @@ export JWT_SECRET=$(openssl rand -hex 32) SEED_ADMIN_PASSWORD=... SEED_OPERATOR_
 | `DB_URL` / `DB_USER` / `DB_PASSWORD` | Conexão JDBC | H2 em memória |
 | `JWT_SECRET` | Segredo HS256 do token (≥ 32 caracteres) | só no perfil local |
 | `RABBITMQ_HOST` / `RABBITMQ_PORT` / `RABBITMQ_USER` / `RABBITMQ_PASSWORD` | Broker | `localhost:5672 guest/guest` |
-| `SANEIA_MESSAGING_MODE` | `rabbit` ou `inline` | `rabbit` |
+| `SANEIA_MESSAGING_MODE` | `rabbit` ou `inline` | `inline` no perfil local, `rabbit` na nuvem |
 | `GEMINI_API_KEY` | Chave do Gemini para os insights. Sem ela, a API devolve o resumo calculado | vazio |
 | `AI_MODEL` / `AI_BASE_URL` | Modelo e endpoint compatível com OpenAI | `gemini-2.5-flash` |
 | `DEVICE_KEY` | Chave do dispositivo IoT (`X-Device-Key`) | `local-device-key` |
 | `SEED_*_PASSWORD` | Senhas das contas provisionadas | `Saneia2026!` só no local |
 | `TELEMETRY_INTERVAL_MINUTES` | Intervalo esperado entre leituras (offline após 2×) | `30` |
 | `CORS_ORIGINS` | Origens liberadas | `*` |
+| `SPRING_MAIL_HOST` / `_PORT` / `_USERNAME` / `_PASSWORD` | SMTP do e-mail de risco máximo | vazio (não envia) |
+| `MAIL_FROM` / `ALERT_EMAILS` | Remetente e destinatários fixos dos alertas | — |
+| `PUBLIC_URL` | URL pública usada no link do e-mail | `http://localhost:8080/api` |
 
 ### Conectar o app mobile
 
@@ -125,7 +135,7 @@ O cadastro público (`POST /auth/signup`) cria **apenas moradores**. A operadora
 | --- | --- | --- | --- |
 | Morador (`resident`) | `morador@saneia.test` | `Saneia2026!` | Abrir, editar e excluir os próprios relatos em `received`, complementar e consultar cobertura |
 | Operadora (`operator`) | `operadora@saneia.test` | `Saneia2026!` | Mapa, ficha, insights, fila de relatos, status e avaliação técnica |
-| Administrador (`admin`) | `admin@saneia.test` | `Saneia2026!` | Usuários e CRUD do catálogo de equipamentos |
+| Administrador (`admin`) | `admin@saneia.test` | `Saneia2026!` | Usuários, CRUD do catálogo de equipamentos e **painel web** `/api/painel` |
 
 Na nuvem, as senhas vêm das variáveis `SEED_*_PASSWORD` do App Service, e não do código.
 
@@ -165,7 +175,7 @@ Respostas de autorização: **401** para sessão ausente ou inválida e **403** 
 
 | # | Requisito | Onde está |
 | --- | --- | --- |
-| 01 | API REST com ≥ 3 entidades relacionadas, CRUD com Spring Data JPA e paginação | 8 entidades (`AppUser`, `Sensor`, `SensorReading`, `SensorEvent`, `Report`, `ReportUpdate`, `StoredFile`, `Notification`). CRUD de equipamentos e relatos. `PageRequest` + cabeçalhos `X-Total-*` (`common/PageResponses`) |
+| 01 | API REST com ≥ 3 entidades relacionadas, CRUD com Spring Data JPA e paginação | 10 entidades (`AppUser`, `Sensor`, `SensorReading`, `SensorEvent`, `Report`, `ReportUpdate`, `StoredFile`, `Notification`, `AlertRecipient`, `EmailLog`). CRUD de equipamentos e relatos. `PageRequest` + cabeçalhos `X-Total-*` (`common/PageResponses`) |
 | 02 | Bean Validation nos DTOs + `@RestControllerAdvice` | DTOs `record` com `@NotBlank`, `@Size`, `@Pattern`, `@Positive` e `@DecimalMin/Max`, mais `common/GlobalExceptionHandler` com `ErrorResponse` padronizado |
 | 03 | Spring Security + JWT com ≥ 2 papéis | `config/SecurityConfig` (resource server, HS256), `TokenService`, papéis `resident`/`operator`/`admin`, `hasRole` nas rotas e `@PreAuthorize` nos controllers, propriedade do relato checada no serviço |
 | 04 | Spring AI integrado ao fluxo | `insight/InsightService` com `ChatClient` (detalhes abaixo) |
@@ -206,9 +216,43 @@ O modelo **não define alarmes nem substitui as medições**. Sem `GEMINI_API_KE
 
 ---
 
+## Painel administrativo e alerta por e-mail
+
+**Painel web em Thymeleaf** em `/api/painel` (no Azure: `https://saneia-api-<RM>.azurewebsites.net/api/painel`). O login é por formulário, com sessão e CSRF, usando as mesmas contas da API, e **só o papel admin entra**. A cadeia de segurança é separada da API (`SecurityConfig`, `@Order(1)`).
+
+| Tela | O que mostra / permite |
+| --- | --- |
+| **Visão geral** | Chamados abertos, recebidos, em atendimento e encerrados (barra de estado), recorrências, **tempo médio de atendimento**, equipamentos por estado, chamados por categoria, e-mails enviados em 24 h, mapa de risco por área, pontos que precisam de atenção, últimos eventos e chamados. Atualiza a cada 30 s |
+| **Risco por área** | Nível por bairro/região: **Risco máximo** (equipamento em alarme), **Alto** (alerta, recorrência ou 3+ chamados), **Moderado** (offline ou chamado aberto) e **Baixo** |
+| **Chamados** | Todos os protocolos, com filtro por status, busca e opção de incluir excluídos. O detalhe mostra o relato, a foto, a localização no mapa, os complementos e o formulário para **atualizar o atendimento** (o morador é notificado) |
+| **Equipamentos** | Volume × limite, previsão, alarmes em 6 meses, gráfico das últimas leituras, eventos e chamados vinculados |
+| **Usuários** | Todas as contas e o formulário para **provisionar operadora e admin** |
+| **Alertas por e-mail** | Destinatários (adicionar, pausar, remover), **e-mail de teste** e registro de cada envio (Enviado, Falhou, Não enviado) |
+
+**E-mail de risco máximo:**
+
+1. O consumidor grava a leitura e detecta o limite atingido.
+2. Ele publica `sensor.alert`, que vai para a fila `saneia.notifications`.
+3. O `AlertEmailService` monta um e-mail HTML (template Thymeleaf `email/alerta-risco.html`) com a área, o equipamento, o volume, o limite, os chamados abertos na região e o link para o painel.
+4. O e-mail vai para cada destinatário ativo. Cada tentativa é gravada em `sn_email_logs`.
+
+Leituras sucessivas no mesmo alarme **não repetem o e-mail**: um novo aviso só sai se o ponto normalizar e voltar ao limite.
+
+Configuração do SMTP, por exemplo com Gmail e uma [senha de app](https://myaccount.google.com/apppasswords):
+
+```bash
+SPRING_MAIL_HOST=smtp.gmail.com  SPRING_MAIL_PORT=587
+SPRING_MAIL_USERNAME=seu-email@gmail.com  SPRING_MAIL_PASSWORD=<senha de app>
+MAIL_FROM="Saneia Alertas <seu-email@gmail.com>"   ALERT_EMAILS=plantao@exemplo.com   # opcional
+```
+
+Sem SMTP, a API funciona normalmente e o painel registra os alertas como "Não enviado".
+
+---
+
 ## Banco de dados
 
-- **Nuvem:** Azure SQL Database. O DDL está em [`scripts/script-bd.sql`](scripts/script-bd.sql).
+- **Nuvem:** Azure SQL Database, com 10 tabelas. O DDL está em [`scripts/script-bd.sql`](scripts/script-bd.sql).
 - **Oracle:** [`scripts/script-bd-oracle.sql`](scripts/script-bd-oracle.sql), para o perfil `oracle`.
 - O catálogo (`sn_sensors`) fica separado do histórico (`sn_sensor_readings`) e dos eventos (`sn_sensor_events`).
 - Consultas para comprovar o CRUD direto no banco: [`scripts/consultas-crud.sql`](scripts/consultas-crud.sql).
@@ -305,7 +349,7 @@ Content-Type: application/json
 ./mvnw verify
 ```
 
-São **testes de integração** (MockMvc + H2) e **unitários** com JUnit 5. Cobrem autenticação, papéis (401/403), validação, CRUD de equipamentos, cobertura, fluxo de telemetria (alarme → normalização → offline), previsão, regra de 20 dias, exclusão lógica, multipart com URL assinada, complementos, fluxo da operadora, notificações e o resumo de insights. A pipeline publica os relatórios JUnit (`target/surefire-reports`) e a cobertura JaCoCo (`target/site/jacoco`).
+São **testes de integração** (MockMvc + H2) e **unitários** com JUnit 5. Cobrem autenticação, papéis (401/403), validação, CRUD de equipamentos, cobertura, fluxo de telemetria (alarme → normalização → offline), previsão, regra de 20 dias, exclusão lógica, multipart com URL assinada, complementos, fluxo da operadora, notificações, o resumo de insights, as telas do painel (login, CSRF, ações do admin) e o e-mail de risco máximo (com `JavaMailSender` simulado). A pipeline publica os relatórios JUnit (`target/surefire-reports`) e a cobertura JaCoCo (`target/site/jacoco`).
 
 ---
 
@@ -319,10 +363,11 @@ Na solução, a IA generativa aparece na funcionalidade de **insights** (Spring 
 
 ## Integrantes
 
-| Nome             | RM         | Turma  |
-|------------------|------------|--------|
-| _Pedro Ferreira_ | _rm565824_ | 2TDSPO |
-| _Jonas Santos_   | _rm563234_ | 2TDSPO |
-| _Gabriel Muller_  | _rm561995_ | 2TDSPO |
+| Nome | RM | Turma |
+| --- | --- | --- |
+| _preencher_ | _rm_ | 2TDS |
+| _preencher_ | _rm_ | 2TDS |
+| _preencher_ | _rm_ | 2TDS |
+| _preencher_ | _rm_ | 2TDS |
 
 Repositório do app mobile: https://github.com/2TDSPO-JPG/SaneiaMobile

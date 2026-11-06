@@ -1,6 +1,7 @@
 flowchart LR
     subgraph Cidadao["Usuários"]
         M["📱 App Expo<br/>morador · operadora · admin"]
+        P["🖥️ Painel admin (navegador)<br/>Thymeleaf · login por sessão"]
         W["🔧 Wokwi<br/>sensor de nível"]
     end
 
@@ -8,15 +9,16 @@ flowchart LR
         subgraph AppService["Azure App Service (Linux · Java 21)"]
             API["Saneia API · Spring Boot<br/>REST + Swagger · Spring Security JWT<br/>Spring Data JPA · Spring AI"]
             C1["Consumidor de leituras<br/>grava histórico · avalia limite<br/>previsão · eventos"]
-            C2["Consumidor de notificações"]
+            C2["Consumidor de notificações<br/>+ e-mail de risco máximo"]
         end
         subgraph ACI["Azure Container Instances"]
             MQ[["RabbitMQ<br/>exchange saneia.events"]]
         end
-        DB[("Azure SQL Database<br/>8 tabelas")]
+        DB[("Azure SQL Database<br/>10 tabelas")]
     end
 
     LLM["🤖 Gemini<br/>(API compatível OpenAI)"]
+    SMTP["✉️ SMTP<br/>(ex.: Gmail)"]
 
     subgraph DevOps["Azure DevOps"]
         B["Boards<br/>tarefas"] --> R["Repos<br/>main protegida + PR"]
@@ -25,6 +27,7 @@ flowchart LR
     end
 
     M -- "HTTPS + Bearer JWT" --> API
+    P -- "HTTPS + sessão/CSRF<br/>/api/painel" --> API
     W -- "HiveMQ → POST /telemetry/readings<br/>X-Device-Key" --> API
     API -- "publica telemetry.reading<br/>report.* · sensor.*" --> MQ
     MQ -- "fila saneia.telemetry.readings" --> C1
@@ -33,6 +36,7 @@ flowchart LR
     API <--> DB
     C1 --> DB
     C2 --> DB
+    C2 -- "alarme → e-mail HTML" --> SMTP
     API -- "indicadores calculados → resumo" --> LLM
     CD -- "AzureWebApp@1" --> AppService
 

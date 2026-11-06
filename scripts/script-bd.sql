@@ -2,11 +2,12 @@
    Saneia · DDL do banco em nuvem (Azure SQL Database / SQL Server)
    Global Solution FIAP 2026/2 · CitizenTech
 
-   8 tabelas relacionadas:
+   10 tabelas (8 do domínio + 2 de alertas por e-mail):
      sn_users ─┬─< sn_reports >── sn_sensors ─┬─< sn_sensor_readings
                │       │  └── sn_files         └─< sn_sensor_events
                │       └─< sn_report_updates
                └─< sn_notifications (por usuário ou por papel)
+     sn_alert_recipients (quem recebe o e-mail de risco máximo) · sn_email_logs (registro de cada envio)
 
    A API usa Hibernate com ddl-auto=update: se este script já tiver sido executado,
    as tabelas são reaproveitadas; se não, a API cria as mesmas estruturas na primeira subida.
@@ -14,6 +15,8 @@
      sqlcmd -S <servidor>.database.windows.net -d saneiadb -U <usuario> -P <senha> -i scripts/script-bd.sql
    ===================================================================================== */
 
+IF OBJECT_ID('dbo.sn_email_logs', 'U') IS NOT NULL DROP TABLE dbo.sn_email_logs;
+IF OBJECT_ID('dbo.sn_alert_recipients', 'U') IS NOT NULL DROP TABLE dbo.sn_alert_recipients;
 IF OBJECT_ID('dbo.sn_notifications', 'U') IS NOT NULL DROP TABLE dbo.sn_notifications;
 IF OBJECT_ID('dbo.sn_report_updates', 'U') IS NOT NULL DROP TABLE dbo.sn_report_updates;
 IF OBJECT_ID('dbo.sn_reports', 'U') IS NOT NULL DROP TABLE dbo.sn_reports;
@@ -181,4 +184,30 @@ CREATE TABLE dbo.sn_notifications (
 );
 CREATE INDEX ix_sn_notif_user ON dbo.sn_notifications (recipient_user_id, created_at);
 CREATE INDEX ix_sn_notif_role ON dbo.sn_notifications (recipient_role, created_at);
+
+/* Destinatários do e-mail de risco máximo (cadastrados pelo admin no painel) */
+CREATE TABLE dbo.sn_alert_recipients (
+    id          BIGINT IDENTITY(1,1) NOT NULL,
+    full_name   NVARCHAR(120)        NOT NULL,
+    email       NVARCHAR(160)        NOT NULL,
+    active      BIT                  NOT NULL,
+    created_at  DATETIMEOFFSET(6)    NOT NULL,
+    CONSTRAINT pk_sn_alert_recipients PRIMARY KEY (id),
+    CONSTRAINT uk_sn_alert_recipients_email UNIQUE (email)
+);
+
+/* Registro de cada e-mail de alerta (SENT, FAILED ou SKIPPED) */
+CREATE TABLE dbo.sn_email_logs (
+    id               BIGINT IDENTITY(1,1) NOT NULL,
+    recipient        NVARCHAR(160)        NULL,
+    subject          NVARCHAR(200)        NOT NULL,
+    event_type       NVARCHAR(40)         NOT NULL,
+    reference_id     NVARCHAR(40)         NULL,
+    delivery_status  NVARCHAR(20)         NOT NULL,
+    error_message    NVARCHAR(500)        NULL,
+    created_at       DATETIMEOFFSET(6)    NOT NULL,
+    CONSTRAINT pk_sn_email_logs PRIMARY KEY (id),
+    CONSTRAINT ck_sn_email_logs_status CHECK (delivery_status IN ('SENT', 'FAILED', 'SKIPPED'))
+);
+CREATE INDEX ix_sn_email_logs_created ON dbo.sn_email_logs (created_at);
 GO

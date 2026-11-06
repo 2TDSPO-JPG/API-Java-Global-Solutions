@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Equipamentos', true)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main>
+        <div class="top">
+            <div>
+                <h1>Equipamentos</h1>
+                <p class="sub" th:text="${equipamentos.size()} + ' equipamento(s) ativo(s) · ordenados por gravidade'">—</p>
+            </div>
+            <a class="btn ghost small" th:href="@{/swagger-ui.html}" target="_blank">Cadastrar pela API</a>
+        </div>
+        <section class="card">
+            <p class="empty" th:if="${equipamentos.isEmpty()}">Nenhum equipamento cadastrado.</p>
+            <div class="table-wrap" th:unless="${equipamentos.isEmpty()}">
+                <table>
+                    <thead><tr><th>Equipamento</th><th>Área</th><th>Estado</th><th style="width:26%">Volume / limite</th>
+                        <th>Previsão</th><th class="right">Alarmes 6 meses</th><th>Última leitura</th></tr></thead>
+                    <tbody>
+                    <tr th:each="s : ${equipamentos}">
+                        <td><a th:href="@{/painel/equipamentos/{id}(id=${s.id})}" th:text="${s.prefix}">RES</a>
+                            <div class="small muted" th:text="${s.name}">nome</div></td>
+                        <td th:text="${s.neighborhood}">—</td>
+                        <td><span class="badge" th:classappend="'b-' + ${s.status}" th:text="${@fmt.status(s.status)}">—</span>
+                            <div class="small muted" th:text="${s.reason}"></div></td>
+                        <td>
+                            <div class="bar" th:classappend="${s.status}">
+                                <span th:style="'width:' + ${s.percent} + '%'"></span>
+                                <i class="limit" th:style="'left:' + ${s.limitPercent} + '%'"></i>
+                            </div>
+                            <div class="small muted" th:text="${@fmt.litros(s.volume)} + ' · limite ' + ${@fmt.litros(s.limit)}">—</div>
+                        </td>
+                        <td class="small" th:text="${s.etaHours != null} ? ${@fmt.horas(s.etaHours)} : '—'">—</td>
+                        <td class="right" th:text="${s.alarmsSixMonths}">0</td>
+                        <td class="small"><span th:text="${@fmt.haQuanto(s.lastReadingAt)}">—</span>
+                            <div class="muted" th:text="${@fmt.dataHora(s.lastReadingAt)}"></div></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

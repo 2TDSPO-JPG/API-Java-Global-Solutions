@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Chamados', false)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main>
+        <div class="top">
+            <div>
+                <h1>Chamados</h1>
+                <p class="sub" th:text="${chamados.totalElements} + ' chamado(s) encontrado(s)'">—</p>
+            </div>
+        </div>
+        <div th:replace="~{painel/fragments :: flash}"></div>
+        <section class="card" style="margin-bottom:16px">
+            <div class="row between">
+                <div class="chips">
+                    <a th:href="@{/painel/chamados(q=${q})}" th:classappend="${status == ''} ? 'on'">Todos</a>
+                    <a th:href="@{/painel/chamados(status='received',q=${q})}" th:classappend="${status == 'received'} ? 'on'">Recebidos</a>
+                    <a th:href="@{/painel/chamados(status='in_progress',q=${q})}" th:classappend="${status == 'in_progress'} ? 'on'">Em atendimento</a>
+                    <a th:href="@{/painel/chamados(status='closed',q=${q})}" th:classappend="${status == 'closed'} ? 'on'">Encerrados</a>
+                </div>
+                <form class="filters" th:action="@{/painel/chamados}" method="get" data-loading="Buscando chamados…">
+                    <input type="hidden" name="status" th:value="${status}">
+                    <input type="search" name="q" th:value="${q}" placeholder="Protocolo, área, categoria ou endereço">
+                    <label class="small" style="margin:0;display:flex;gap:6px;align-items:center;font-weight:500">
+                        <input type="checkbox" name="excluidos" value="true" th:checked="${excluidos}" style="width:auto"> incluir excluídos
+                    </label>
+                    <button type="submit">Filtrar</button>
+                </form>
+            </div>
+        </section>
+        <section class="card">
+            <p class="empty" th:if="${chamados.content.isEmpty()}">Nenhum chamado com esses filtros.</p>
+            <div class="table-wrap" th:unless="${chamados.content.isEmpty()}">
+                <table>
+                    <thead><tr><th>Protocolo</th><th>Categoria</th><th>Área / endereço</th><th>Morador</th><th>Sensor</th>
+                        <th>Estado</th><th>Aberto em</th><th>Encerrado em</th></tr></thead>
+                    <tbody>
+                    <tr th:each="r : ${chamados.content}">
+                        <td><a th:href="@{/painel/chamados/{id}(id=${r.id})}" th:text="${r.protocol}">SAN</a>
+                            <span class="tag" th:if="${r.recurrent}">recorrente</span>
+                            <span class="tag grey" th:if="${r.deleted}">excluído</span></td>
+                        <td th:text="${r.category}">—</td>
+                        <td><span th:text="${r.neighborhood}">—</span><div class="small muted" th:text="${r.address}"></div></td>
+                        <td><span th:text="${r.ownerName}">—</span><div class="small muted" th:text="${r.ownerEmail}"></div></td>
+                        <td th:text="${r.sensorPrefix != null} ? ${r.sensorPrefix} : 'sem cobertura'" th:classappend="${r.sensorPrefix == null} ? 'muted small'">—</td>
+                        <td><span class="badge" th:classappend="'b-' + ${r.status}" th:text="${@fmt.status(r.status)}">—</span></td>
+                        <td class="small" th:text="${@fmt.dataHora(r.createdAt)}">—</td>
+                        <td class="small" th:text="${@fmt.dataHora(r.closedAt)}">—</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pager" th:if="${chamados.totalPages > 1}">
+                <a class="btn ghost small" th:if="${chamados.hasPrevious()}"
+                   th:href="@{/painel/chamados(status=${status},q=${q},excluidos=${excluidos},page=${chamados.number - 1})}">← Anterior</a>
+                <span class="small muted" th:text="'Página ' + ${chamados.number + 1} + ' de ' + ${chamados.totalPages}"></span>
+                <a class="btn ghost small" th:if="${chamados.hasNext()}"
+                   th:href="@{/painel/chamados(status=${status},q=${q},excluidos=${excluidos},page=${chamados.number + 1})}">Próxima →</a>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

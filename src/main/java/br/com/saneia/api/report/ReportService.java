@@ -189,6 +189,19 @@ public class ReportService {
     public ReportResponse updateStatus(CurrentUser user, Long id, StatusUpdateRequest request) {
         requireRole(user, Role.OPERATOR, "O atendimento é atualizado pela operadora.");
         Report report = visible(user, id);
+        applyStatus(report, request);
+        return toResponse(report, user);
+    }
+
+    /** Usado pelo painel administrativo (Thymeleaf): o admin pode conduzir o atendimento de qualquer chamado. */
+    @Transactional
+    public void updateStatusFromPanel(Long id, StatusUpdateRequest request) {
+        Report report = reports.findByIdAndDeletedAtIsNull(id)
+                .orElseThrow(() -> ApiException.notFound("Relato não encontrado."));
+        applyStatus(report, request);
+    }
+
+    private void applyStatus(Report report, StatusUpdateRequest request) {
         if (!report.isOpen()) {
             throw ApiException.conflict("Este atendimento já foi encerrado.");
         }
@@ -208,7 +221,6 @@ public class ReportService {
                     report.getProtocol(), report.getOwner().getId(), next.apiValue(), report.getResolution(),
                     report.getProgressNote(), clock.instant()));
         }
-        return toResponse(report, user);
     }
 
     @Transactional

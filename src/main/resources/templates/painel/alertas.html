@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Alertas por e-mail', false)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main>
+        <div class="top">
+            <div>
+                <h1>Alertas por e-mail</h1>
+                <p class="sub">Quando um ponto atinge o limite operacional (risco máximo), o consumidor da fila
+                    <code>saneia.notifications</code> envia um e-mail para cada destinatário ativo.</p>
+            </div>
+            <span class="badge" th:classappend="${smtp} ? 'b-sent' : 'b-skipped'" th:text="${smtp} ? 'SMTP configurado' : 'SMTP não configurado'">SMTP</span>
+        </div>
+        <div th:replace="~{painel/fragments :: flash}"></div>
+        <div class="alert warn" th:unless="${smtp}">
+            Para enviar de verdade, defina no App Service <code>SPRING_MAIL_HOST</code>, <code>SPRING_MAIL_PORT</code>,
+            <code>SPRING_MAIL_USERNAME</code> e <code>SPRING_MAIL_PASSWORD</code> (ex.: Gmail com senha de app).
+            Enquanto isso, cada alerta fica registrado abaixo como “Não enviado”.
+        </div>
+        <section class="grid g3">
+            <div class="card span2">
+                <h2>Destinatários</h2>
+                <p class="empty" th:if="${destinatarios.isEmpty()}">Nenhum destinatário. Cadastre ao lado quem deve receber os alertas.</p>
+                <div class="table-wrap" th:unless="${destinatarios.isEmpty()}">
+                    <table>
+                        <thead><tr><th>Nome</th><th>E-mail</th><th>Situação</th><th class="right">Ações</th></tr></thead>
+                        <tbody>
+                        <tr th:each="d : ${destinatarios}">
+                            <td th:text="${d.name}">—</td>
+                            <td th:text="${d.email}">—</td>
+                            <td><span class="badge" th:classappend="${d.active} ? 'b-sent' : 'b-offline'" th:text="${d.active} ? 'Ativo' : 'Pausado'">—</span></td>
+                            <td class="right">
+                                <form th:action="@{/painel/alertas/{id}/alternar(id=${d.id})}" method="post" style="display:inline">
+                                    <button class="ghost small" type="submit" th:text="${d.active} ? 'Pausar' : 'Reativar'">Pausar</button></form>
+                                <form th:action="@{/painel/alertas/{id}/remover(id=${d.id})}" method="post" style="display:inline" data-loading="Removendo destinatário…">
+                                    <button class="danger small" type="submit">Remover</button></form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Adicionar destinatário</h2>
+                <form th:action="@{/painel/alertas}" th:object="${novoDestinatario}" method="post" data-loading="Salvando destinatário…">
+                    <label for="name">Nome</label>
+                    <input th:field="*{name}" maxlength="120" required placeholder="Plantão da operadora">
+                    <label for="email">E-mail</label>
+                    <input th:field="*{email}" type="email" maxlength="160" required placeholder="plantao@exemplo.com">
+                    <button type="submit" style="margin-top:14px;width:100%">Adicionar</button>
+                </form>
+                <h2 style="margin-top:22px">Testar envio</h2>
+                <form th:action="@{/painel/alertas/teste}" method="post" data-loading="Enviando e-mail de teste…">
+                    <input name="email" type="email" required placeholder="seu-email@exemplo.com">
+                    <button class="ghost" type="submit" style="margin-top:10px;width:100%">Enviar e-mail de teste</button>
+                </form>
+            </div>
+        </section>
+        <section class="card" style="margin-top:16px">
+            <h2>Registro de envios</h2>
+            <p class="empty" th:if="${envios.content.isEmpty()}">Nenhum e-mail disparado ainda.</p>
+            <div class="table-wrap" th:unless="${envios.content.isEmpty()}">
+                <table>
+                    <thead><tr><th>Quando</th><th>Assunto</th><th>Para</th><th>Resultado</th><th>Detalhe</th></tr></thead>
+                    <tbody>
+                    <tr th:each="l : ${envios.content}">
+                        <td class="small" th:text="${@fmt.dataHora(l.createdAt)}">—</td>
+                        <td th:text="${l.subject}">—</td>
+                        <td th:text="${l.recipient != null} ? ${l.recipient} : '—'">—</td>
+                        <td><span class="badge" th:classappend="'b-' + ${#strings.toLowerCase(l.status.name())}"
+                                  th:text="${@fmt.status(l.status.name())}">—</span></td>
+                        <td class="small muted" th:text="${l.errorMessage != null} ? ${l.errorMessage} : ''"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pager" th:if="${envios.totalPages > 1}">
+                <a class="btn ghost small" th:if="${envios.hasPrevious()}" th:href="@{/painel/alertas(page=${envios.number - 1})}">← Anterior</a>
+                <span class="small muted" th:text="'Página ' + ${envios.number + 1} + ' de ' + ${envios.totalPages}"></span>
+                <a class="btn ghost small" th:if="${envios.hasNext()}" th:href="@{/painel/alertas(page=${envios.number + 1})}">Próxima →</a>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>

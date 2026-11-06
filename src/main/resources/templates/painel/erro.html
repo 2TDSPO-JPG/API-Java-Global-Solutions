@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Erro', false)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main>
+        <div class="card" style="max-width:560px">
+            <h1 th:text="'Erro ' + ${codigo}">Erro</h1>
+            <p th:text="${mensagem}">Algo deu errado.</p>
+            <a class="btn" th:href="@{/painel}">Voltar à visão geral</a>
+        </div>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{painel/fragments :: head('Usuários', false)}"></head>
+<body>
+<div class="app">
+    <aside th:replace="~{painel/fragments :: nav}"></aside>
+    <main>
+        <div class="top">
+            <div>
+                <h1>Usuários</h1>
+                <p class="sub" th:text="${usuarios.totalElements} + ' conta(s) · o cadastro público do app cria apenas moradores'">—</p>
+            </div>
+        </div>
+        <div th:replace="~{painel/fragments :: flash}"></div>
+        <section class="grid g3">
+            <div class="card span2">
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>#</th><th>Nome</th><th>E-mail</th><th>Papel</th><th>Criado em</th></tr></thead>
+                        <tbody>
+                        <tr th:each="u : ${usuarios.content}">
+                            <td class="muted" th:text="${u.id}">1</td>
+                            <td th:text="${u.name}">—</td>
+                            <td th:text="${u.email}">—</td>
+                            <td><span class="badge" th:classappend="'b-' + ${u.role}" th:text="${@fmt.status(u.role)}">—</span></td>
+                            <td class="small" th:text="${@fmt.dataHora(u.createdAt)}">—</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pager" th:if="${usuarios.totalPages > 1}">
+                    <a class="btn ghost small" th:if="${usuarios.hasPrevious()}" th:href="@{/painel/usuarios(page=${usuarios.number - 1})}">← Anterior</a>
+                    <span class="small muted" th:text="'Página ' + ${usuarios.number + 1} + ' de ' + ${usuarios.totalPages}"></span>
+                    <a class="btn ghost small" th:if="${usuarios.hasNext()}" th:href="@{/painel/usuarios(page=${usuarios.number + 1})}">Próxima →</a>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Nova conta da equipe</h2>
+                <p class="small muted" style="margin-top:0">Provisione contas de operadora e de administração.</p>
+                <form th:action="@{/painel/usuarios}" th:object="${novoUsuario}" method="post" data-loading="Criando conta…">
+                    <div class="alert err" th:if="${#fields.hasErrors('*')}">
+                        <div th:each="err : ${#fields.allErrors()}" th:text="${err}">erro</div>
+                    </div>
+                    <label for="name">Nome</label>
+                    <input th:field="*{name}" maxlength="120" required>
+                    <label for="email">E-mail</label>
+                    <input th:field="*{email}" type="email" maxlength="160" required>
+                    <label for="password">Senha inicial</label>
+                    <input th:field="*{password}" type="password" minlength="8" maxlength="100" required>
+                    <label for="role">Papel</label>
+                    <select th:field="*{role}">
+                        <option value="operator">Operadora</option>
+                        <option value="admin">Administrador</option>
+                        <option value="resident">Morador</option>
+                    </select>
+                    <button type="submit" style="margin-top:14px;width:100%">Criar conta</button>
+                </form>
+            </div>
+        </section>
+    </main>
+</div>
+</body>
+</html>
