@@ -1,6 +1,7 @@
 package br.com.saneia.api.sensor;
 
 import java.time.Instant;
+import java.util.Locale;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
@@ -12,14 +13,24 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 /**
  * Catálogo do equipamento + estado atual consolidado. As medições ficam em {@link SensorReading}
  * (tabela separada), então novas leituras não alteram os dados cadastrais.
+ *
+ * <p>Unicidade do prefixo: {@code active_prefix_key} guarda o prefixo em maiúsculas enquanto o equipamento está
+ * ativo e fica nulo depois da exclusão lógica. A restrição única sobre essa coluna vale nos três bancos
+ * (H2 e Oracle aceitam vários nulos; no SQL Server o DDL usa índice único filtrado), então só pode existir um
+ * equipamento ativo por prefixo e os retirados liberam o prefixo para reaproveitamento.
  */
 @Entity
-@Table(name = "sn_sensors", indexes = @Index(name = "ix_sn_sensors_prefix", columnList = "prefix"))
+@Table(name = "sn_sensors",
+        indexes = @Index(name = "ix_sn_sensors_prefix", columnList = "prefix"),
+        uniqueConstraints = @UniqueConstraint(name = Sensor.ACTIVE_PREFIX_CONSTRAINT, columnNames = "active_prefix_key"))
 public class Sensor {
+
+    public static final String ACTIVE_PREFIX_CONSTRAINT = "uk_sn_sensors_active_prefix";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +38,9 @@ public class Sensor {
 
     @Column(nullable = false, length = 30)
     private String prefix;
+
+    @Column(name = "active_prefix_key", length = 30)
+    private String activePrefixKey;
 
     @Column(name = "sensor_name", nullable = false, length = 100)
     private String name;
@@ -105,6 +119,7 @@ public class Sensor {
             double latitude, double longitude, double capacity, double limit, double radiusMeters,
             int expectedIntervalMinutes, Instant now) {
         this.prefix = prefix;
+        this.activePrefixKey = active ? prefix.toUpperCase(Locale.ROOT) : null;
         this.name = name;
         this.equipmentType = equipmentType;
         this.address = address;
@@ -127,6 +142,7 @@ public class Sensor {
 
     public void retire(Instant now) {
         this.active = false;
+        this.activePrefixKey = null;
         this.deletedAt = now;
         this.updatedAt = now;
     }
@@ -169,6 +185,10 @@ public class Sensor {
 
     public PostalAddress getPostalAddress() {
         return postalAddress == null ? null : postalAddress.toDto();
+    }
+
+    public String getActivePrefixKey() {
+        return activePrefixKey;
     }
 
     public double getLatitude() {

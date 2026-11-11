@@ -46,6 +46,7 @@ CREATE TABLE dbo.sn_users (
 CREATE TABLE dbo.sn_sensors (
     id                     BIGINT IDENTITY(1,1) NOT NULL,
     prefix                 NVARCHAR(30)         NOT NULL,
+    active_prefix_key      NVARCHAR(30)         NULL,     -- UPPER(prefix) enquanto ativo; NULL após a exclusão lógica
     sensor_name            NVARCHAR(100)        NOT NULL,
     equipment_type         NVARCHAR(100)        NOT NULL,
     address                NVARCHAR(200)        NOT NULL,
@@ -78,9 +79,15 @@ CREATE TABLE dbo.sn_sensors (
     CONSTRAINT ck_sn_sensors_limit CHECK (limit_liters > 0 AND limit_liters <= capacity_liters),
     CONSTRAINT ck_sn_sensors_radius CHECK (radius_meters > 0),
     CONSTRAINT ck_sn_sensors_coord CHECK (latitude BETWEEN -90 AND 90 AND longitude BETWEEN -180 AND 180),
+    CONSTRAINT ck_sn_sensors_prefix_key CHECK ((active = 1 AND active_prefix_key = UPPER(prefix))
+                                               OR (active = 0 AND active_prefix_key IS NULL)),
     CONSTRAINT ck_sn_sensors_cep CHECK (postal_cep IS NULL OR (LEN(postal_cep) = 8 AND postal_cep NOT LIKE '%[^0-9]%'))
 );
 CREATE INDEX ix_sn_sensors_prefix ON dbo.sn_sensors (prefix);
+/* Um único equipamento ATIVO por prefixo (sem diferenciar maiúsculas). O índice é filtrado porque, no
+   SQL Server, UNIQUE comum aceita apenas um NULL e os equipamentos retirados ficam com a chave nula. */
+CREATE UNIQUE INDEX uk_sn_sensors_active_prefix ON dbo.sn_sensors (active_prefix_key)
+    WHERE active_prefix_key IS NOT NULL;
 
 /* Histórico de medições: uma linha por leitura válida (separado do cadastro) */
 CREATE TABLE dbo.sn_sensor_readings (

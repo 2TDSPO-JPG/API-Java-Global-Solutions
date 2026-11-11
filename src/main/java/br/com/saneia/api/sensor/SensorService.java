@@ -11,6 +11,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -102,12 +103,18 @@ public class SensorService {
             throw ApiException.badRequest("Informe o endereço estruturado (postalAddress) do equipamento.");
         }
         if (sensors.existsByPrefixIgnoreCaseAndActiveTrue(prefix)) {
-            throw ApiException.conflict("Já existe um equipamento com esse prefixo.");
+            throw prefixConflict();
         }
         Instant now = clock.instant();
         Sensor sensor = new Sensor(now);
         apply(sensor, input, prefix, now);
-        return toResponse(sensors.save(sensor), true);
+        // A checagem acima dá a mensagem no caso comum; a restrição única do banco resolve a corrida entre
+        // cadastros simultâneos. O flush força o INSERT aqui, para converter a violação em 409.
+        try {
+            return toResponse(sensors.saveAndFlush(sensor), true);
+        } catch (DataIntegrityViolationException ex) {
+            throw translatePrefixViolation(ex);
+        }
     }
 
     @Transactional
@@ -116,10 +123,28 @@ public class SensorService {
         String prefix = normalizePrefix(input.prefix());
         validateCatalog(input);
         if (sensors.existsByPrefixIgnoreCaseAndActiveTrueAndIdNot(prefix, id)) {
-            throw ApiException.conflict("Já existe um equipamento com esse prefixo.");
+            throw prefixConflict();
         }
         apply(sensor, input, prefix, clock.instant());
+        try {
+            sensors.flush();
+        } catch (DataIntegrityViolationException ex) {
+            throw translatePrefixViolation(ex);
+        }
         return toResponse(sensor, true);
+    }
+
+    private static ApiException prefixConflict() {
+        return ApiException.conflict("Já existe um equipamento com esse prefixo.");
+    }
+
+    /** Violação da restrição de prefixo ativo vira 409; outras violações seguem para o tratamento global. */
+    static RuntimeException translatePrefixViolation(DataIntegrityViolationException ex) {
+        String cause = String.valueOf(ex.getMostSpecificCause().getMessage()).toLowerCase(Locale.ROOT);
+        if (cause.contains(Sensor.ACTIVE_PREFIX_CONSTRAINT) || cause.contains("active_prefix_key")) {
+            return prefixConflict();
+        }
+        return ex;
     }
 
     /** Retira do catálogo ativo, do mapa e da cobertura. Leituras, eventos e vínculos de protocolos são preservados. */
