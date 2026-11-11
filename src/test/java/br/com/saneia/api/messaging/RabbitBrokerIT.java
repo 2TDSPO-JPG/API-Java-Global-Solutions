@@ -35,7 +35,7 @@ import br.com.saneia.api.support.IntegrationTest;
  * Publicação e consumo com um RabbitMQ REAL (não roda no CI comum, que usa o modo inline).
  * Como executar (broker em localhost:5672, guest/guest):
  *   docker compose -f dockerfiles/docker-compose.yml up -d rabbitmq
- *   SANEIA_IT_RABBIT=true ./mvnw test -Dtest=RabbitBrokerIntegrationTest
+ *   SANEIA_IT_RABBIT=true ./mvnw test -Dtest=RabbitBrokerIT
  * Host e credenciais vêm de RABBITMQ_HOST, RABBITMQ_PORT, RABBITMQ_USER e RABBITMQ_PASSWORD.
  */
 @EnabledIfEnvironmentVariable(named = "SANEIA_IT_RABBIT", matches = "true")
@@ -45,7 +45,7 @@ import br.com.saneia.api.support.IntegrationTest;
         "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration",
         "spring.rabbitmq.listener.simple.retry.initial-interval=200ms"})
 @DisplayName("RabbitMQ real: publicação, chegada na fila, consumo pelo listener e DLQ")
-class RabbitBrokerIntegrationTest extends IntegrationTest {
+class RabbitBrokerIT extends IntegrationTest {
 
     @Autowired
     private AmqpAdmin amqp;

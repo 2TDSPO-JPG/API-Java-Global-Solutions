@@ -20,12 +20,12 @@ import br.com.saneia.api.support.IntegrationTest;
 
 /**
  * Chamada REAL ao Gemini via Spring AI (só roda com a chave no ambiente; o CI comum pula):
- *   GEMINI_API_KEY=... ./mvnw test -Dtest=GeminiLiveIntegrationTest
+ *   GEMINI_API_KEY=... ./mvnw test -Dtest=GeminiLiveIT
  */
 @EnabledIfEnvironmentVariable(named = "GEMINI_API_KEY", matches = ".+")
 @TestPropertySource(properties = "spring.ai.openai.api-key=${GEMINI_API_KEY}")
 @DisplayName("Spring AI + Gemini real: resumo gerado pelo LLM a partir dos indicadores do backend")
-class GeminiLiveIntegrationTest extends IntegrationTest {
+class GeminiLiveIT extends IntegrationTest {
 
     @Test
     @DisplayName("aiGenerated=true, modelo informado e indicadores iguais aos calculados")

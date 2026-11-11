@@ -221,12 +221,12 @@ Respostas de autorização: **401** para sessão ausente ou inválida e **403** 
 
 ```bash
 docker compose -f dockerfiles/docker-compose.yml up -d rabbitmq
-SANEIA_IT_RABBIT=true ./mvnw test -Dtest=RabbitBrokerIntegrationTest   # 3 testes com RabbitMQ real
+SANEIA_IT_RABBIT=true ./mvnw test -Dtest=RabbitBrokerIT   # 3 testes com RabbitMQ real
 SANEIA_MESSAGING_MODE=rabbit RABBIT_HEALTH=true ./mvnw spring-boot:run  # em outro terminal
 bash scripts/validar-rabbitmq.sh                                         # roteiro ponta a ponta via HTTP
 ```
 
-- `RabbitBrokerIntegrationTest` para o consumidor, publica a leitura, confere a mensagem **parada na fila** `saneia.telemetry.readings`, religa o consumidor e confere a leitura **gravada**. Depois comprova o fluxo `report.status` → `saneia.notifications` → notificação do morador, e que uma mensagem inválida vai para a **DLQ**.
+- `RabbitBrokerIT` para o consumidor, publica a leitura, confere a mensagem **parada na fila** `saneia.telemetry.readings`, religa o consumidor e confere a leitura **gravada**. Depois comprova o fluxo `report.status` → `saneia.notifications` → notificação do morador, e que uma mensagem inválida vai para a **DLQ**.
 - `scripts/validar-rabbitmq.sh` faz o mesmo pela API em execução e imprime os contadores de cada fila (publicadas, consumidas, consumidores), lidos da API de gerenciamento do RabbitMQ.
 
 ---
@@ -245,7 +245,7 @@ O modelo **não define alarmes nem substitui as medições**. Sem `GEMINI_API_KE
 **Validação:**
 
 ```bash
-GEMINI_API_KEY=<chave> ./mvnw test -Dtest=GeminiLiveIntegrationTest   # chamada real: aiGenerated=true e indicadores conferidos
+GEMINI_API_KEY=<chave> ./mvnw test -Dtest=GeminiLiveIT   # chamada real: aiGenerated=true e indicadores conferidos
 GEMINI_API_KEY=<chave> ./mvnw spring-boot:run                          # em outro terminal
 bash scripts/validar-ia.sh                                              # ESPERADO=false testa o resumo de reserva
 ```
@@ -405,7 +405,7 @@ Content-Type: application/json
 ./mvnw verify
 ```
 
-São **62 testes** (58 executados no CI e 4 que dependem de broker ou chave real), de **integração** (MockMvc + H2) e **unitários**, com JUnit 5. Cobrem autenticação, papéis (401/403), validação, CRUD de equipamentos, cobertura, fluxo de telemetria (alarme → normalização → offline), previsão, regra de 20 dias, exclusão lógica, multipart com URL assinada, complementos, fluxo da operadora, notificações, o resumo de insights, as telas do painel (login, CSRF, ações do admin) e o e-mail de risco máximo (com `JavaMailSender` simulado). Também cobrem o endereço estruturado, o prefixo único com **8 cadastros simultâneos** (exatamente um 201 e sete 409) e edições concorrentes, e a regra de recorrência na edição, inclusive com criação e edição ao mesmo tempo, e o resumo de reserva com o provedor de IA fora do ar. Os testes com RabbitMQ real (`SANEIA_IT_RABBIT=true`) e Gemini real (`GEMINI_API_KEY`) só rodam quando o ambiente tem esses serviços. A pipeline publica os relatórios JUnit (`target/surefire-reports`) e a cobertura JaCoCo (`target/site/jacoco`).
+São **58 testes** no `./mvnw verify` (e no CI), de **integração** (MockMvc + H2) e **unitários**, com JUnit 5. Cobrem autenticação, papéis (401/403), validação, CRUD de equipamentos, cobertura, fluxo de telemetria (alarme → normalização → offline), previsão, regra de 20 dias, exclusão lógica, multipart com URL assinada, complementos, fluxo da operadora, notificações, o resumo de insights, as telas do painel (login, CSRF, ações do admin) e o e-mail de risco máximo (com `JavaMailSender` simulado). Também cobrem o endereço estruturado, o prefixo único com **8 cadastros simultâneos** (exatamente um 201 e sete 409) e edições concorrentes, e a regra de recorrência na edição, inclusive com criação e edição ao mesmo tempo, e o resumo de reserva com o provedor de IA fora do ar. Os testes com serviços reais ficam fora da suíte padrão (sufixo `IT`) e rodam sob comando: `RabbitBrokerIT` (3 testes, `SANEIA_IT_RABBIT=true`) e `GeminiLiveIT` (1 teste, `GEMINI_API_KEY`). A pipeline publica os relatórios JUnit (`target/surefire-reports`) e a cobertura JaCoCo (`target/site/jacoco`).
 
 ---
 
