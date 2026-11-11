@@ -11,7 +11,11 @@ import jakarta.validation.constraints.Size;
 
 import br.com.saneia.api.common.Coordinate;
 
-/** SensorInput do contrato. Capacidade e limite em litros, raio em metros. */
+/**
+ * SensorInput do contrato. Capacidade e limite em litros, raio em metros.
+ * {@code address} continua sendo o endereço formatado (até 200 caracteres) e {@code postalAddress} traz os campos
+ * separados. Na edição, omitir {@code postalAddress} mantém o endereço estruturado já salvo (cadastros legados).
+ */
 public record SensorInput(
         @NotBlank(message = "Informe o prefixo.")
         @Pattern(regexp = "^[A-Za-z0-9][A-Za-z0-9_-]{1,29}$",
@@ -35,5 +39,7 @@ public record SensorInput(
         Double radiusMeters,
         @Min(value = 1, message = "O intervalo esperado deve ser de 1 a 1440 minutos.")
         @Max(value = 1440, message = "O intervalo esperado deve ser de 1 a 1440 minutos.")
-        Integer expectedIntervalMinutes) {
+        Integer expectedIntervalMinutes,
+        @Valid
+        PostalAddress postalAddress) {
 }

@@ -50,6 +50,13 @@ CREATE TABLE dbo.sn_sensors (
     equipment_type         NVARCHAR(100)        NOT NULL,
     address                NVARCHAR(200)        NOT NULL,
     neighborhood           NVARCHAR(80)         NOT NULL,
+    postal_cep             NVARCHAR(8)          NULL,     -- endereço estruturado (NULL nos cadastros legados)
+    postal_street          NVARCHAR(120)        NULL,
+    postal_number          NVARCHAR(10)         NULL,     -- texto: aceita S/N
+    postal_neighborhood    NVARCHAR(80)         NULL,
+    postal_city            NVARCHAR(80)         NULL,
+    postal_state           NVARCHAR(2)          NULL,
+    postal_complement      NVARCHAR(80)         NULL,
     latitude               FLOAT(53)            NOT NULL,
     longitude              FLOAT(53)            NOT NULL,
     capacity_liters        FLOAT(53)            NOT NULL,
@@ -70,7 +77,8 @@ CREATE TABLE dbo.sn_sensors (
     CONSTRAINT ck_sn_sensors_status CHECK (current_status IN ('NORMAL', 'WARNING', 'ALARM', 'OFFLINE')),
     CONSTRAINT ck_sn_sensors_limit CHECK (limit_liters > 0 AND limit_liters <= capacity_liters),
     CONSTRAINT ck_sn_sensors_radius CHECK (radius_meters > 0),
-    CONSTRAINT ck_sn_sensors_coord CHECK (latitude BETWEEN -90 AND 90 AND longitude BETWEEN -180 AND 180)
+    CONSTRAINT ck_sn_sensors_coord CHECK (latitude BETWEEN -90 AND 90 AND longitude BETWEEN -180 AND 180),
+    CONSTRAINT ck_sn_sensors_cep CHECK (postal_cep IS NULL OR (LEN(postal_cep) = 8 AND postal_cep NOT LIKE '%[^0-9]%'))
 );
 CREATE INDEX ix_sn_sensors_prefix ON dbo.sn_sensors (prefix);
 

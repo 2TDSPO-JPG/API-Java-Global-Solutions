@@ -31,6 +31,13 @@ CREATE TABLE sn_sensors (
     equipment_type         NVARCHAR2(100)  NOT NULL,
     address                NVARCHAR2(200)  NOT NULL,
     neighborhood           NVARCHAR2(80)   NOT NULL,
+    postal_cep             NVARCHAR2(8),             -- endereço estruturado (NULL nos cadastros legados)
+    postal_street          NVARCHAR2(120),
+    postal_number          NVARCHAR2(10),            -- texto: aceita S/N
+    postal_neighborhood    NVARCHAR2(80),
+    postal_city            NVARCHAR2(80),
+    postal_state           NVARCHAR2(2),
+    postal_complement      NVARCHAR2(80),
     latitude               FLOAT(53)       NOT NULL,
     longitude              FLOAT(53)       NOT NULL,
     capacity_liters        FLOAT(53)       NOT NULL,
@@ -50,7 +57,8 @@ CREATE TABLE sn_sensors (
     CONSTRAINT pk_sn_sensors PRIMARY KEY (id),
     CONSTRAINT ck_sn_sensors_status CHECK (current_status IN ('NORMAL', 'WARNING', 'ALARM', 'OFFLINE')),
     CONSTRAINT ck_sn_sensors_limit CHECK (limit_liters > 0 AND limit_liters <= capacity_liters),
-    CONSTRAINT ck_sn_sensors_active CHECK (active IN (0, 1))
+    CONSTRAINT ck_sn_sensors_active CHECK (active IN (0, 1)),
+    CONSTRAINT ck_sn_sensors_cep CHECK (postal_cep IS NULL OR REGEXP_LIKE(postal_cep, '^[0-9]{8}$'))
 );
 CREATE INDEX ix_sn_sensors_prefix ON sn_sensors (prefix);
 

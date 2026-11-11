@@ -16,6 +16,7 @@ public record SensorResponse(
         String equipmentType,
         String address,
         String neighborhood,
+        @JsonInclude(JsonInclude.Include.ALWAYS) PostalAddress postalAddress,
         Coordinate coordinate,
         @JsonInclude(JsonInclude.Include.ALWAYS) SensorStatus status,
         double capacity,

@@ -3,8 +3,17 @@
   "prefix": "RES-21",
   "name": "Reservatório 21",
   "equipmentType": "Reservatório com sensor de nível",
-  "address": "Rua das Palmeiras, 210",
+  "address": "Rua das Palmeiras, 210 - Setor Leste, São Paulo - SP, 03001-000",
   "neighborhood": "Setor Leste",
+  "postalAddress": {
+    "cep": "03001000",
+    "street": "Rua das Palmeiras",
+    "number": "210",
+    "neighborhood": "Setor Leste",
+    "city": "São Paulo",
+    "state": "SP",
+    "complement": null
+  },
   "coordinate": { "latitude": -23.5530, "longitude": -46.6290 },
   "capacity": 2000,
   "limit": 1800,

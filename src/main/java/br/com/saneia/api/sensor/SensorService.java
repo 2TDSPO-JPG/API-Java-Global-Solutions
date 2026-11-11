@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,9 +39,12 @@ public class SensorService {
     private final SensorEventRepository events;
     private final SaneiaProperties properties;
     private final Clock clock;
+    private final boolean requirePostalAddress;
 
     public SensorService(SensorRepository sensors, SensorReadingRepository readings, SensorEventRepository events,
-            SaneiaProperties properties, Clock clock) {
+            SaneiaProperties properties, Clock clock,
+            @Value("${saneia.sensors.require-postal-address:false}") boolean requirePostalAddress) {
+        this.requirePostalAddress = requirePostalAddress;
         this.sensors = sensors;
         this.readings = readings;
         this.events = events;
@@ -94,6 +98,9 @@ public class SensorService {
     public SensorResponse create(SensorInput input) {
         String prefix = normalizePrefix(input.prefix());
         validateCatalog(input);
+        if (requirePostalAddress && input.postalAddress() == null) {
+            throw ApiException.badRequest("Informe o endereço estruturado (postalAddress) do equipamento.");
+        }
         if (sensors.existsByPrefixIgnoreCaseAndActiveTrue(prefix)) {
             throw ApiException.conflict("Já existe um equipamento com esse prefixo.");
         }
@@ -128,6 +135,8 @@ public class SensorService {
         sensor.updateCatalog(prefix, input.name().trim(), input.equipmentType().trim(), input.address().trim(),
                 input.neighborhood().trim(), input.coordinate().latitude(), input.coordinate().longitude(),
                 input.capacity(), input.limit(), input.radiusMeters(), interval, now);
+        // Com postalAddress, todos os campos estruturados são substituídos juntos; sem ele, mantém o salvo.
+        sensor.updatePostalAddress(input.postalAddress() == null ? null : input.postalAddress().normalized());
     }
 
     private static void validateCatalog(SensorInput input) {
@@ -188,7 +197,7 @@ public class SensorService {
 
         return new SensorResponse(
                 String.valueOf(sensor.getId()), sensor.getPrefix(), sensor.getName(), sensor.getEquipmentType(),
-                sensor.getAddress(), sensor.getNeighborhood(),
+                sensor.getAddress(), sensor.getNeighborhood(), sensor.getPostalAddress(),
                 new Coordinate(sensor.getLatitude(), sensor.getLongitude()),
                 status, sensor.getCapacity(), sensor.getLimit(), sensor.getVolume(), sensor.getLevelCm(),
                 sensor.getLastReadingAt(), eta, alarms, volumes, samples, eventList, reason, null,

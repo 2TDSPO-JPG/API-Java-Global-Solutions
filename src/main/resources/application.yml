@@ -119,6 +119,10 @@ management:
 saneia:
   # URL pública da API (usada nos links do e-mail para o painel)
   public-url: ${PUBLIC_URL:http://localhost:8080/api}
+  sensors:
+    # true depois que o app passar a enviar postalAddress: novos cadastros sem o objeto recebem 400.
+    # Edições de cadastros legados continuam aceitas sem o objeto (mantêm o endereço estruturado salvo).
+    require-postal-address: ${SANEIA_REQUIRE_POSTAL_ADDRESS:false}
   mail:
     enabled: ${MAIL_ENABLED:true}
     from: ${MAIL_FROM:Saneia Alertas <no-reply@saneia.app>}

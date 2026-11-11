@@ -3,6 +3,7 @@ package br.com.saneia.api.sensor;
 import java.time.Instant;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -38,6 +39,9 @@ public class Sensor {
 
     @Column(nullable = false, length = 80)
     private String neighborhood;
+
+    @Embedded
+    private SensorPostalAddress postalAddress;
 
     @Column(nullable = false)
     private double latitude;
@@ -114,6 +118,13 @@ public class Sensor {
         this.updatedAt = now;
     }
 
+    /** Grava o endereço estruturado; nulo mantém o que já existe (edição de cadastro legado). */
+    public void updatePostalAddress(PostalAddress address) {
+        if (address != null) {
+            this.postalAddress = SensorPostalAddress.of(address);
+        }
+    }
+
     public void retire(Instant now) {
         this.active = false;
         this.deletedAt = now;
@@ -154,6 +165,10 @@ public class Sensor {
 
     public String getNeighborhood() {
         return neighborhood;
+    }
+
+    public PostalAddress getPostalAddress() {
+        return postalAddress == null ? null : postalAddress.toDto();
     }
 
     public double getLatitude() {
