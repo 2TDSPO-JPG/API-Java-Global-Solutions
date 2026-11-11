@@ -107,13 +107,7 @@ public class ReportService {
         ReportPolicy.Eligibility eligibility = ReportPolicy.eligibility(own, category, coordinate.latitude(),
                 coordinate.longitude(), now);
         if (!eligibility.allowed()) {
-            Map<String, Object> details = new HashMap<>();
-            details.put("nextEligibleAt", eligibility.nextEligibleAt().toString());
-            if (eligibility.existingOpen() != null) {
-                details.put("existingReportId", String.valueOf(eligibility.existingOpen().getId()));
-            }
-            throw new ApiException(HttpStatus.CONFLICT, cooldownMessage(eligibility.nextEligibleAt()),
-                    "REPORT_COOLDOWN", details);
+            throw cooldownConflict(eligibility);
         }
 
         Report report = new Report(newProtocol(now), owner, now);
@@ -137,23 +131,40 @@ public class ReportService {
     @Transactional
     public ReportResponse update(CurrentUser user, Long id, ReportInput input, MultipartFile photo) {
         requireRole(user, Role.RESIDENT, "Somente o morador edita o próprio relato.");
+        // Mesma ordem de bloqueio da criação (morador primeiro): criar e editar do mesmo morador ficam em fila,
+        // então a checagem dos 20 dias não diverge entre as duas operações.
+        users.lockById(user.id()).orElseThrow(() -> ApiException.notFound("Usuário não encontrado."));
         Report report = visible(user, id);
         if (report.getStatus() != ReportStatus.RECEIVED) {
             throw ApiException.conflict("O relato já está em atendimento.");
         }
         String category = validCategory(input.category());
         Coordinate coordinate = input.coordinate();
-        boolean changedOccurrence = !category.equals(report.getCategory()) || Geo.distanceMeters(
-                report.getLatitude(), report.getLongitude(), coordinate.latitude(), coordinate.longitude())
-                > ReportPolicy.RADIUS_METERS;
+        boolean categoryChanged = !category.equals(report.getCategory());
+        boolean moved = Geo.distanceMeters(report.getLatitude(), report.getLongitude(),
+                coordinate.latitude(), coordinate.longitude()) > 0;
         Instant now = clock.instant();
+
+        List<Report> others = List.of();
+        if (categoryChanged || moved) {
+            // A regra de recorrência vale para o destino da edição; o próprio relato nunca se bloqueia.
+            others = reports.findByOwnerIdAndCategoryAndStatusNot(report.getOwner().getId(), category,
+                    ReportStatus.CLOSED).stream().filter(other -> !other.getId().equals(report.getId())).toList();
+            ReportPolicy.Eligibility eligibility = ReportPolicy.eligibility(others, category, coordinate.latitude(),
+                    coordinate.longitude(), now);
+            if (!eligibility.allowed()) {
+                throw cooldownConflict(eligibility); // nada foi alterado: categoria e local continuam os anteriores
+            }
+        }
+
+        boolean changedOccurrence = categoryChanged || Geo.distanceMeters(report.getLatitude(),
+                report.getLongitude(), coordinate.latitude(), coordinate.longitude()) > ReportPolicy.RADIUS_METERS;
         report.applyContent(category, input.description().trim(), input.address().trim(), input.neighborhood().trim(),
                 coordinate.latitude(), coordinate.longitude(), now);
         if (changedOccurrence) {
-            List<Report> own = reports.findByOwnerIdAndCategoryAndStatusNot(report.getOwner().getId(), category,
-                    ReportStatus.CLOSED);
-            report.linkPrevious(ReportPolicy.previousOpen(own, category, coordinate.latitude(), coordinate.longitude(),
-                    report.getCreatedAt()).filter(previous -> !previous.getId().equals(report.getId())).orElse(null));
+            // Fora do prazo de bloqueio, mantém o vínculo de recorrência coerente com o novo destino.
+            report.linkPrevious(ReportPolicy.previousOpen(others, category, coordinate.latitude(),
+                    coordinate.longitude(), report.getCreatedAt()).orElse(null));
         }
         if (!report.isSensorLocked()) {
             report.linkSensor(sensors.nearestCovering(coordinate.latitude(), coordinate.longitude()).orElse(null));
@@ -377,6 +388,17 @@ public class ReportService {
 
     private static String trimToNull(String value) {
         return StringUtils.hasText(value) ? value.trim() : null;
+    }
+
+    /** 409 REPORT_COOLDOWN com a liberação e o protocolo aberto que pode receber complemento. */
+    private static ApiException cooldownConflict(ReportPolicy.Eligibility eligibility) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("nextEligibleAt", eligibility.nextEligibleAt().toString());
+        if (eligibility.existingOpen() != null) {
+            details.put("existingReportId", String.valueOf(eligibility.existingOpen().getId()));
+        }
+        return new ApiException(HttpStatus.CONFLICT, cooldownMessage(eligibility.nextEligibleAt()),
+                "REPORT_COOLDOWN", details);
     }
 
     static String cooldownMessage(Instant nextEligibleAt) {
