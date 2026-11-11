@@ -125,6 +125,9 @@ management:
       enabled: false
 
 saneia:
+  integration:
+    key: ${SANEIA_INTEGRATION_KEY:}
+    dotnet-url: ${DOTNET_TELEMETRY_URL:}
   # URL pública da API (usada nos links do e-mail para o painel)
   public-url: ${PUBLIC_URL:http://localhost:8080/api}
   sensors:

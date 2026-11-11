@@ -43,7 +43,7 @@ Fonte do desenho: [`docs/arquitetura.mmd`](docs/arquitetura.mmd) (Mermaid).
 **Fluxos principais**
 
 1. **Relato do morador.** App → `POST /reports` (JWT). A API gera o protocolo, aplica a regra de recorrência, vincula o sensor que cobre o local e grava no Azure SQL. Em seguida publica `report.opened`, e o consumidor gera as notificações.
-2. **Leitura do sensor.** Wokwi → HiveMQ → `POST /telemetry/readings` (chave do dispositivo). A API valida a leitura e publica `telemetry.reading` na fila. O consumidor grava o histórico, avalia o limite e a previsão, e abre, agrava ou encerra eventos. Quando o ponto entra em alerta, publica `sensor.alert`.
+2. **Leitura do sensor.** No app conectado às duas APIs, o .NET assina o tópico HiveMQ do Wokwi e grava a telemetria. No fluxo Java independente, `POST /telemetry/readings` valida a chave do dispositivo e publica `telemetry.reading` no RabbitMQ. Esse consumidor mantém o histórico Java e publica `sensor.alert` quando o ponto entra em risco.
 3. **Atendimento.** A operadora vê o mapa (`GET /sensors`, consultado a cada 5 s pelo app) e a fila (`GET /reports`). Ela atualiza o protocolo (`received → in_progress → closed`) e o morador é notificado pela fila.
 4. **Insights.** A operadora pede o resumo do período. O backend calcula os indicadores no banco e o LLM só redige a explicação.
 5. **Risco máximo.** Quando um ponto atinge o limite, o consumidor de `sensor.alert` envia um e-mail HTML para os destinatários de alerta e registra cada envio. O painel administrativo mostra o mapa de risco por área em tempo real.
@@ -139,6 +139,14 @@ A API aceita e devolve `postalAddress` em `POST/PATCH /admin/sensors` e em `GET 
 6. O `address` formatado continua limitado a **200 caracteres**, igual ao DTO Java. Se esse limite mudar, a coluna, a validação, a documentação e o cliente mudam juntos.
 
 ---
+
+## Telemetria .NET nos insights
+
+Configure `DOTNET_TELEMETRY_URL=http://localhost:5085/api` e defina a mesma `SANEIA_INTEGRATION_KEY` nos dois backends. Use um valor aleatório de pelo menos 32 bytes, independente do JWT e da credencial de dispositivos. Mantenha a chave no ambiente dos servidores.
+
+Com essa configuração, o Java mantém o endpoint público `POST /sensors/{id}/insights` e lê do .NET o resumo do período selecionado. A resposta informa `telemetrySource: "dotnet"`. Configure `GEMINI_API_KEY` no Java para que o Spring AI gere o texto. Se o provedor estiver indisponível, o resumo calculado usa os mesmos indicadores. Uma falha ao consultar o .NET retorna 503. Com `DOTNET_TELEMETRY_URL` vazia, os insights continuam usando as leituras locais do Java.
+
+O consumidor MQTT do .NET consulta o catálogo ativo em `GET /api/internal/catalog/sensors/by-prefix/{prefix}`, protegido pelo cabeçalho `X-Saneia-Integration-Key`. A consulta devolve ID, prefixo, capacidade e limite. O JWT e as permissões das rotas do app seguem o fluxo normal.
 
 ## Usuários de teste
 

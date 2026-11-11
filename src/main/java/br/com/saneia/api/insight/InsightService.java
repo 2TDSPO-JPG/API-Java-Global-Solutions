@@ -61,6 +61,7 @@ public class InsightService {
     private final SensorService sensors;
     private final SensorReadingRepository readings;
     private final SensorEventRepository events;
+    private final DotNetTelemetryClient dotNetTelemetry;
     private final ObjectProvider<ChatClient.Builder> chatClientBuilder;
     private final ObjectMapper objectMapper;
     private final Clock clock;
@@ -68,12 +69,14 @@ public class InsightService {
     private final String model;
 
     public InsightService(SensorService sensors, SensorReadingRepository readings, SensorEventRepository events,
-            ObjectProvider<ChatClient.Builder> chatClientBuilder, ObjectMapper objectMapper, Clock clock,
+            DotNetTelemetryClient dotNetTelemetry, ObjectProvider<ChatClient.Builder> chatClientBuilder,
+            ObjectMapper objectMapper, Clock clock,
             @Value("${spring.ai.openai.api-key:}") String apiKey,
             @Value("${spring.ai.openai.chat.options.model:}") String model) {
         this.sensors = sensors;
         this.readings = readings;
         this.events = events;
+        this.dotNetTelemetry = dotNetTelemetry;
         this.chatClientBuilder = chatClientBuilder;
         this.objectMapper = objectMapper;
         this.clock = clock;
@@ -85,9 +88,11 @@ public class InsightService {
     public InsightResponse summarize(Long sensorId, InsightRequest request) {
         Sensor sensor = sensors.requireActive(sensorId);
         InsightIndicators indicators = indicators(sensor, request);
+        String telemetrySource = dotNetTelemetry.enabled() ? "dotnet" : "java";
         if (indicators.readings() == 0) {
             return new InsightResponse("Não há leituras deste equipamento no período selecionado. "
-                    + "Escolha um período maior ou verifique a comunicação do dispositivo.", false, null, indicators);
+                    + "Escolha um período maior ou verifique a comunicação do dispositivo.", false, null,
+                    indicators, telemetrySource);
         }
         if (llmEnabled()) {
             try {
@@ -98,7 +103,7 @@ public class InsightService {
                         .call()
                         .content();
                 if (StringUtils.hasText(text)) {
-                    return new InsightResponse(text.trim(), true, model, indicators);
+                    return new InsightResponse(text.trim(), true, model, indicators, telemetrySource);
                 }
             } catch (JsonProcessingException ex) {
                 log.warn("Falha ao serializar os indicadores", ex);
@@ -106,7 +111,7 @@ public class InsightService {
                 log.warn("LLM indisponível para o sensor {}: {}", sensorId, ex.getMessage());
             }
         }
-        return new InsightResponse(fallbackSummary(indicators), false, null, indicators);
+        return new InsightResponse(fallbackSummary(indicators), false, null, indicators, telemetrySource);
     }
 
     boolean llmEnabled() {
@@ -122,6 +127,9 @@ public class InsightService {
                 : request.from();
         if (from.isAfter(to)) {
             throw ApiException.badRequest("O início do período deve ser anterior ao fim.");
+        }
+        if (dotNetTelemetry.enabled()) {
+            return dotNetTelemetry.indicators(sensor, request.period(), from, to);
         }
 
         List<SensorReading> series = readings.findInRange(sensor.getId(), from, to, PageRequest.of(0, MAX_READINGS));
@@ -189,7 +197,7 @@ public class InsightService {
         } else {
             text.append("Não houve alarme de nível. ");
         }
-        if (i.offlineEvents() > 0) {
+        if (i.offlineEvents() != null && i.offlineEvents() > 0) {
             text.append(String.format(PT_BR, "O equipamento ficou sem comunicação %d vez(es), somando %.1f h. ",
                     i.offlineEvents(), i.offlineHours()));
         }

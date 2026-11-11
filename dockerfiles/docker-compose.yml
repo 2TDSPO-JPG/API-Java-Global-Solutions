@@ -34,4 +34,6 @@ services:
       # Valores só para a máquina local. Em nuvem eles vêm das variáveis do App Service.
       JWT_SECRET: ${JWT_SECRET:-local-dev-secret-change-me-0123456789abcdef}
       DEVICE_KEY: ${DEVICE_KEY:-local-device-key}
-      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-desativado}
+      SANEIA_INTEGRATION_KEY: ${SANEIA_INTEGRATION_KEY:-}
+      DOTNET_TELEMETRY_URL: ${DOTNET_TELEMETRY_URL:-}

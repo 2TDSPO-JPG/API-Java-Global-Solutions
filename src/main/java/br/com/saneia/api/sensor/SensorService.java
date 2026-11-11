@@ -72,6 +72,17 @@ public class SensorService {
                 .orElseThrow(() -> ApiException.notFound("Equipamento não encontrado."));
     }
 
+    @Transactional(readOnly = true)
+    public DeviceCatalog deviceCatalog(String prefix) {
+        Sensor sensor = sensors.findFirstByPrefixIgnoreCaseAndActiveTrue(normalizePrefix(prefix))
+                .orElseThrow(() -> ApiException.notFound("Equipamento não encontrado."));
+        return new DeviceCatalog(String.valueOf(sensor.getId()), sensor.getPrefix(),
+                sensor.getCapacity(), sensor.getLimit());
+    }
+
+    public record DeviceCatalog(String id, String prefix, double capacity, double limit) {
+    }
+
     /** Equipamento ativo mais próximo cujo raio cobre o ponto (mesma regra do app). */
     @Transactional(readOnly = true)
     public Optional<Sensor> nearestCovering(double latitude, double longitude) {
