@@ -23,9 +23,9 @@ variables:
   - name: AZURE_SERVICE_CONNECTION
     value: 'saneia-azure'
   - name: WEBAPP_NAME
-    value: 'saneia-api-rm000000'
+    value: 'saneia-api-rm565824'
   - name: RESOURCE_GROUP
-    value: 'rg-saneia-rm000000'
+    value: 'rg-saneia-rm565824'
   - name: ARTIFACT_NAME
     value: saneia-api
   - name: API_BASE_URL
