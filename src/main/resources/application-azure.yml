@@ -10,6 +10,13 @@ spring:
       maximum-pool-size: 5
       connection-timeout: 60000  # Azure SQL serverless pode levar ~1 min para retomar após pausa
 
+  jpa:
+    properties:
+      hibernate:
+        # Restrições únicas vêm do scripts/script-bd.sql (índice filtrado do prefixo no SQL Server)
+        schema_update:
+          unique_constraint_strategy: SKIP
+
 logging:
   level:
     root: INFO
