@@ -67,6 +67,14 @@ spring:
           initial-interval: 1s
 
   ai:
+    # Falha rápida: com o provedor fora do ar, a resposta cai no resumo calculado em segundos
+    # (o padrão do Spring AI são 10 tentativas com espera exponencial).
+    retry:
+      max-attempts: ${AI_RETRY_ATTEMPTS:2}
+      backoff:
+        initial-interval: 1s
+        multiplier: 2
+        max-interval: 4s
     # Gemini pela API compatível com OpenAI. Sem GEMINI_API_KEY a API usa um resumo calculado (fallback).
     openai:
       api-key: ${GEMINI_API_KEY:desativado}
