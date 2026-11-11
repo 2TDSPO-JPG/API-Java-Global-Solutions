@@ -106,6 +106,8 @@ export JWT_SECRET=$(openssl rand -hex 32) SEED_ADMIN_PASSWORD=... SEED_OPERATOR_
 | `SANEIA_MESSAGING_MODE` | `rabbit` ou `inline` | `inline` no perfil local, `rabbit` na nuvem |
 | `GEMINI_API_KEY` | Chave do Gemini para os insights. Sem ela, a API devolve o resumo calculado | vazio |
 | `AI_MODEL` / `AI_BASE_URL` | Modelo e endpoint compatível com OpenAI | `gemini-2.5-flash` |
+| `AI_RETRY_ATTEMPTS` | Tentativas no provedor de IA antes do resumo calculado | `2` |
+| `SANEIA_REQUIRE_POSTAL_ADDRESS` | `true` exige `postalAddress` nos **novos** cadastros de equipamento (ligar quando o app enviar o objeto) | `false` |
 | `DEVICE_KEY` | Chave do dispositivo IoT (`X-Device-Key`) | `local-device-key` |
 | `SEED_*_PASSWORD` | Senhas das contas provisionadas | `Saneia2026!` só no local |
 | `TELEMETRY_INTERVAL_MINUTES` | Intervalo esperado entre leituras (offline após 2×) | `30` |
@@ -124,6 +126,17 @@ EXPO_PUBLIC_API_URL=https://saneia-api-<RM>.azurewebsites.net/api   # nuvem
 ```
 
 O CORS já libera `Authorization`, `Content-Type` e o preflight `OPTIONS`.
+
+#### Ajustes no adaptador do mobile (endereço estruturado)
+
+A API aceita e devolve `postalAddress` em `POST/PATCH /admin/sensors` e em `GET /admin/sensors`, `GET /admin/sensors/{id}`, `GET /sensors` e `GET /sensors/{id}`. `address`, `neighborhood` e `coordinate` continuam no nível principal.
+
+1. **Parar de remover `postalAddress`** antes de enviar ao Java no cadastro e na edição do equipamento.
+2. **Ler `postalAddress` da resposta** para reabrir o formulário com CEP, número, cidade e UF separados. Em equipamentos antigos o campo vem `null`; nesse caso, o formulário usa `address`.
+3. Mandar `cep` e `number` como **texto** (CEP com 8 dígitos e zeros à esquerda; o hífen é aceito e removido; número aceita `S/N`), `state` com a sigla da UF e `complement` como `null` quando vazio.
+4. Mostrar o 400 de validação no campo certo: os erros vêm em `errors[].field`, como `postalAddress.cep` e `postalAddress.state`.
+5. Quando o app estiver publicado com o envio, ligar `SANEIA_REQUIRE_POSTAL_ADDRESS=true` na API. A partir daí, cadastro novo sem o objeto recebe 400, e equipamento legado continua editável sem ele.
+6. O `address` formatado continua limitado a **200 caracteres**, igual ao DTO Java. Se esse limite mudar, a coluna, a validação, a documentação e o cliente mudam juntos.
 
 ---
 
@@ -152,7 +165,7 @@ Base: `/api`. Rotas protegidas recebem `Authorization: Bearer <token>`. Os erros
 | `GET /reports` | morador / operadora | Próprios relatos ou fila completa (recorrentes primeiro) |
 | `GET /reports/{id}` | dono / operadora | Detalhe com `updates` e `assessment` (só operadora) |
 | `POST /reports` | morador | JSON ou multipart (`report` = JSON, `photo` = imagem). 409 `REPORT_COOLDOWN` |
-| `PATCH /reports/{id}` | morador | Edita em `received`; sem nova foto, mantém a anterior |
+| `PATCH /reports/{id}` | morador | Edita em `received`; sem nova foto, mantém a anterior. Mudança de categoria/local segue a regra dos 20 dias (409 `REPORT_COOLDOWN`) |
 | `DELETE /reports/{id}` | morador | Exclusão lógica em `received` → 204 |
 | `PATCH /reports/{id}/status` | operadora | `status`, `resolution`, `progressNote` e `outcome` opcional (`resolved`, `stabilized`, `unfounded`, `forwarded`) |
 | `POST /reports/{id}/updates` | morador | Complemento (nota e/ou foto) sem novo protocolo |
@@ -162,7 +175,7 @@ Base: `/api`. Rotas protegidas recebem `Authorization: Bearer <token>`. Os erros
 | `GET /sensors` · `GET /sensors/{id}` | operadora / admin | Mapa e ficha: estado, volume, previsão, amostras e eventos |
 | `POST /sensors/{id}/insights` | operadora / admin | **Spring AI**: `{ summary, aiGenerated, indicators }` |
 | `GET /admin/users` | admin | `id`, `name`, `email`, `role` |
-| `GET/POST /admin/sensors` · `GET/PATCH/DELETE /admin/sensors/{id}` | admin | CRUD do catálogo (exclusão lógica) |
+| `GET/POST /admin/sensors` · `GET/PATCH/DELETE /admin/sensors/{id}` | admin | CRUD do catálogo (exclusão lógica), com `postalAddress`. Prefixo ativo repetido → 409 |
 | `POST /telemetry/readings` | dispositivo (`X-Device-Key`) | Leitura do Wokwi → fila (202 Accepted) |
 | `GET /notifications` · `PATCH /notifications/{id}/read` | autenticado | Avisos gerados pelo consumidor da fila |
 | `GET /files/{id}?expires=&signature=` | URL assinada | Foto do relato (HMAC-SHA256, validade de 2 h) |
@@ -185,7 +198,9 @@ Respostas de autorização: **401** para sessão ausente ou inválida e **403** 
 
 **Regras de negócio implementadas no servidor:**
 - Protocolo e data de abertura gerados no servidor. IDs em texto e datas ISO 8601.
-- **Recorrência:** na mesma transação (com lock do morador), bloqueia em 20 dias a mesma categoria a até 75 m e responde `409 REPORT_COOLDOWN` com `existingReportId`. Protocolos encerrados não bloqueiam e os excluídos continuam contando. Passado o prazo, o novo relato é vinculado ao anterior aberto por `previousReportId`/`previousProtocol`.
+- **Recorrência:** na mesma transação (com lock do morador), bloqueia em 20 dias a mesma categoria a até 75 m e responde `409 REPORT_COOLDOWN` com `existingReportId` e `nextEligibleAt`. Protocolos encerrados não bloqueiam e os excluídos continuam contando. Passado o prazo, o novo relato é vinculado ao anterior aberto por `previousReportId`/`previousProtocol`.
+- **Recorrência também na edição:** se `PATCH /reports/{id}` muda a categoria ou o local, a regra é aplicada ao destino da edição, comparando com os **outros** protocolos do morador (o próprio relato nunca se bloqueia). A edição usa o mesmo lock do morador que a criação, então criar e editar ao mesmo tempo não geram duplicata. Em conflito, responde 409 `REPORT_COOLDOWN` e o relato fica como estava. Texto, referência e foto continuam editáveis; protocolo e data de abertura não mudam.
+- **Prefixo único:** só pode existir **um equipamento ativo por prefixo**, sem diferenciar maiúsculas. A regra está no banco (`active_prefix_key` + restrição única) e vale mesmo com cadastros simultâneos; o conflito volta como `409`. Um equipamento retirado libera o prefixo para reaproveitamento.
 - Cobertura pelo equipamento ativo mais próximo dentro do raio.
 - Equipamento novo começa `offline`. A exclusão é lógica e preserva leituras e vínculos.
 - Alarme com limite crítico, alerta por previsão (regressão linear das últimas 6 h, janela de 12 h) ou por 85% do limite. A normalização só ocorre após 2 leituras estáveis. Um alarme contínuo conta uma vez, e o ponto vira "Sem comunicação" após 2× o intervalo esperado.
@@ -202,6 +217,18 @@ Respostas de autorização: **401** para sessão ausente ou inválida e **403** 
 - **Fluxo de relatos:** `report.opened`, `report.status` e `report.assessment` são consumidos e viram notificações para a operadora e para o morador (`GET /notifications`).
 - Para testes e execução sem broker existe o modo `inline`, com os mesmos handlers chamados após o commit.
 
+**Validação com o broker real** (além da suíte, que usa `inline`):
+
+```bash
+docker compose -f dockerfiles/docker-compose.yml up -d rabbitmq
+SANEIA_IT_RABBIT=true ./mvnw test -Dtest=RabbitBrokerIntegrationTest   # 3 testes com RabbitMQ real
+SANEIA_MESSAGING_MODE=rabbit RABBIT_HEALTH=true ./mvnw spring-boot:run  # em outro terminal
+bash scripts/validar-rabbitmq.sh                                         # roteiro ponta a ponta via HTTP
+```
+
+- `RabbitBrokerIntegrationTest` para o consumidor, publica a leitura, confere a mensagem **parada na fila** `saneia.telemetry.readings`, religa o consumidor e confere a leitura **gravada**. Depois comprova o fluxo `report.status` → `saneia.notifications` → notificação do morador, e que uma mensagem inválida vai para a **DLQ**.
+- `scripts/validar-rabbitmq.sh` faz o mesmo pela API em execução e imprime os contadores de cada fila (publicadas, consumidas, consumidores), lidos da API de gerenciamento do RabbitMQ.
+
 ---
 
 ## Funcionalidade com Spring AI
@@ -214,6 +241,16 @@ Respostas de autorização: **401** para sessão ausente ou inválida e **403** 
 4. Devolve `{ summary, aiGenerated, model, indicators }`. O app mostra o `summary` na ficha do equipamento.
 
 O modelo **não define alarmes nem substitui as medições**. Sem `GEMINI_API_KEY`, ou se o provedor falhar, a API devolve um resumo calculado (`aiGenerated: false`), e a tela continua funcionando. O cidadão ganha com isso porque a operadora prioriza o ponto certo antes do extravasamento.
+
+**Validação:**
+
+```bash
+GEMINI_API_KEY=<chave> ./mvnw test -Dtest=GeminiLiveIntegrationTest   # chamada real: aiGenerated=true e indicadores conferidos
+GEMINI_API_KEY=<chave> ./mvnw spring-boot:run                          # em outro terminal
+bash scripts/validar-ia.sh                                              # ESPERADO=false testa o resumo de reserva
+```
+
+`InsightProviderIntegrationTest` roda sempre na suíte: com o provedor configurado mas fora do ar, a resposta é 200 com `aiGenerated: false` em poucos segundos (`AI_RETRY_ATTEMPTS` limita as tentativas).
 
 ---
 
@@ -266,6 +303,8 @@ Sem SMTP, a API funciona normalmente e o painel registra os alertas como "Não e
 - **Nuvem:** Azure SQL Database, com 11 tabelas. O DDL está em [`scripts/script-bd.sql`](scripts/script-bd.sql).
 - **Oracle:** [`scripts/script-bd-oracle.sql`](scripts/script-bd-oracle.sql), para o perfil `oracle`.
 - O catálogo (`sn_sensors`) fica separado do histórico (`sn_sensor_readings`) e dos eventos (`sn_sensor_events`).
+- `sn_sensors` guarda o endereço estruturado em `postal_*` (nulo nos cadastros legados) e a chave `active_prefix_key`, que é `UPPER(prefix)` enquanto o equipamento está ativo e `NULL` depois da exclusão lógica. A restrição `uk_sn_sensors_active_prefix` garante um ativo por prefixo. No SQL Server ela é um índice único **filtrado** (`WHERE active_prefix_key IS NOT NULL`), porque lá o UNIQUE comum aceita um só `NULL`. No Oracle e no H2 o UNIQUE já ignora os nulos.
+- **Bancos criados antes desta versão:** rode [`scripts/migracao-v2-sqlserver.sql`](scripts/migracao-v2-sqlserver.sql) ou [`scripts/migracao-v2-oracle.sql`](scripts/migracao-v2-oracle.sql). O script lista os prefixos ativos duplicados e **para com erro** se houver algum, sem alterar nada; resolva renomeando ou retirando os excedentes e rode de novo. Com `ddl-auto=update`, a API também preenche a chave na subida e registra no log as duplicatas que encontrar.
 - Consultas para comprovar o CRUD direto no banco: [`scripts/consultas-crud.sql`](scripts/consultas-crud.sql).
 
 ---
@@ -307,11 +346,17 @@ Content-Type: application/json
 
 {
   "prefix": "RES-21", "name": "Reservatório 21", "equipmentType": "Reservatório com sensor de nível",
-  "address": "Rua das Palmeiras, 210", "neighborhood": "Setor Leste",
+  "address": "Rua das Palmeiras, 210 - Setor Leste, São Paulo - SP, 03001-000", "neighborhood": "Setor Leste",
+  "postalAddress": {
+    "cep": "03001000", "street": "Rua das Palmeiras", "number": "210",
+    "neighborhood": "Setor Leste", "city": "São Paulo", "state": "SP", "complement": null
+  },
   "coordinate": { "latitude": -23.5530, "longitude": -46.6290 },
   "capacity": 2000, "limit": 1800, "radiusMeters": 200
 }
 ```
+
+A resposta traz o mesmo `postalAddress` (CEP só com dígitos e UF em maiúsculas). Em uma edição sem `postalAddress`, o endereço estruturado salvo é mantido.
 
 - `GET /api/admin/sensors` e `GET /api/admin/sensors/{id}` (read)
 - `PATCH /api/admin/sensors/{id}` com o mesmo corpo alterado (update)
@@ -360,7 +405,7 @@ Content-Type: application/json
 ./mvnw verify
 ```
 
-São **testes de integração** (MockMvc + H2) e **unitários** com JUnit 5. Cobrem autenticação, papéis (401/403), validação, CRUD de equipamentos, cobertura, fluxo de telemetria (alarme → normalização → offline), previsão, regra de 20 dias, exclusão lógica, multipart com URL assinada, complementos, fluxo da operadora, notificações, o resumo de insights, as telas do painel (login, CSRF, ações do admin) e o e-mail de risco máximo (com `JavaMailSender` simulado). A pipeline publica os relatórios JUnit (`target/surefire-reports`) e a cobertura JaCoCo (`target/site/jacoco`).
+São **62 testes** (58 executados no CI e 4 que dependem de broker ou chave real), de **integração** (MockMvc + H2) e **unitários**, com JUnit 5. Cobrem autenticação, papéis (401/403), validação, CRUD de equipamentos, cobertura, fluxo de telemetria (alarme → normalização → offline), previsão, regra de 20 dias, exclusão lógica, multipart com URL assinada, complementos, fluxo da operadora, notificações, o resumo de insights, as telas do painel (login, CSRF, ações do admin) e o e-mail de risco máximo (com `JavaMailSender` simulado). Também cobrem o endereço estruturado, o prefixo único com **8 cadastros simultâneos** (exatamente um 201 e sete 409) e edições concorrentes, e a regra de recorrência na edição, inclusive com criação e edição ao mesmo tempo, e o resumo de reserva com o provedor de IA fora do ar. Os testes com RabbitMQ real (`SANEIA_IT_RABBIT=true`) e Gemini real (`GEMINI_API_KEY`) só rodam quando o ambiente tem esses serviços. A pipeline publica os relatórios JUnit (`target/surefire-reports`) e a cobertura JaCoCo (`target/site/jacoco`).
 
 ---
 
