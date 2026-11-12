@@ -19,6 +19,10 @@ public interface SensorRepository extends JpaRepository<Sensor, Long> {
 
     List<Sensor> findByActiveTrue();
 
+    List<Sensor> findByPrefixStartingWith(String prefix);
+
+    boolean existsByPrefixIgnoreCase(String prefix);
+
     Optional<Sensor> findByIdAndActiveTrue(Long id);
 
     Optional<Sensor> findFirstByPrefixIgnoreCaseAndActiveTrue(String prefix);

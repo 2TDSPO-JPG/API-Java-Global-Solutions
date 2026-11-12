@@ -84,7 +84,9 @@ docker compose -f dockerfiles/docker-compose.yml up --build
 
 Nas três opções: API em http://localhost:8080/api · Swagger em http://localhost:8080/api/swagger-ui.html · painel admin em http://localhost:8080/api/painel
 
-O perfil padrão (`local`) usa **H2 em memória** e já cria as contas de teste e um cenário de demonstração: 4 reservatórios com histórico, alarmes e 2 relatos.
+O perfil padrão (`local`) usa **H2 em memória**. Ele cria as contas de teste, 199 pontos simulados na cidade de São Paulo e o reservatório `RES-07` reservado ao Wokwi. Os pontos simulados usam endereços e coordenadas de referência da base pública da Secretaria da Educação. Os nomes, equipamentos e incidentes de saneamento são fictícios. [Base pública de endereços e coordenadas](https://dadosabertos.des.sp.gov.br/dataset/147f73b8-a803-44c0-9a68-77acaa7f25a1/resource/40052501-6c2d-4739-9712-d4a0325eda1a)
+
+O catálogo de São Paulo é carregado uma vez por prefixo. Para iniciar com catálogo vazio em um banco novo, defina `SEED_SP_CATALOG=false` e `SEED_DEMO_DATA=false`. O .NET pode consumir `GET /sensors?catalogOnly=true` e `GET /sensors/{id}?catalogOnly=true` para obter o cadastro sem consultar históricos do Java.
 
 ### Com Oracle (ex.: Oracle da FIAP)
 

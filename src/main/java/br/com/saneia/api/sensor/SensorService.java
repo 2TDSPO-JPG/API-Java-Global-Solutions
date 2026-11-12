@@ -62,6 +62,25 @@ public class SensorService {
     }
 
     @Transactional(readOnly = true)
+    public Page<SensorResponse> listCatalog(Pageable pageable) {
+        return sensors.findByActiveTrueOrderByPrefixAsc(pageable).map(this::catalogResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public SensorResponse catalogDetail(Long id) {
+        return catalogResponse(requireActive(id));
+    }
+
+    private SensorResponse catalogResponse(Sensor sensor) {
+        return new SensorResponse(String.valueOf(sensor.getId()), sensor.getPrefix(), sensor.getName(),
+                sensor.getEquipmentType(), sensor.getAddress(), sensor.getNeighborhood(), sensor.getPostalAddress(),
+                new Coordinate(sensor.getLatitude(), sensor.getLongitude()), effectiveStatus(sensor),
+                sensor.getCapacity(), sensor.getLimit(), sensor.getVolume(), sensor.getLevelCm(),
+                sensor.getLastReadingAt(), null, 0, List.of(), null, null, sensor.getReason(), null, null,
+                sensor.getExpectedIntervalMinutes(), sensor.getRadiusMeters());
+    }
+
+    @Transactional(readOnly = true)
     public SensorResponse detail(Long id) {
         return toResponse(requireActive(id), true);
     }
@@ -81,6 +100,14 @@ public class SensorService {
     }
 
     public record DeviceCatalog(String id, String prefix, double capacity, double limit) {
+    }
+
+    @Transactional(readOnly = true)
+    public List<DeviceCatalog> demoCatalog() {
+        return sensors.findByPrefixStartingWith("SP-D").stream().filter(Sensor::isActive)
+                .map(sensor -> new DeviceCatalog(String.valueOf(sensor.getId()), sensor.getPrefix(),
+                        sensor.getCapacity(), sensor.getLimit()))
+                .toList();
     }
 
     /** Equipamento ativo mais próximo cujo raio cobre o ponto (mesma regra do app). */

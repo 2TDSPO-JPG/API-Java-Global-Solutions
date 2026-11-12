@@ -1,0 +1,1793 @@
+[
+  {
+    "district": "Agua Rasa",
+    "neighborhood": "Vila Santa Clara",
+    "street": "Rua Batuns",
+    "number": "52",
+    "cep": "03273410",
+    "latitude": -23.57877,
+    "longitude": -46.56237
+  },
+  {
+    "district": "Alto de Pinheiros",
+    "neighborhood": "Cerqueira Cesar",
+    "street": "Avenida Eneas Carvalho de Aguiar Doutor",
+    "number": "44",
+    "cep": "05403000",
+    "latitude": -23.556801,
+    "longitude": -46.671501
+  },
+  {
+    "district": "Anhanguera",
+    "neighborhood": "Jardim Jaragua",
+    "street": "Rua Giovani Paladino",
+    "number": "76",
+    "cep": "05265020",
+    "latitude": -23.450001,
+    "longitude": -46.7887
+  },
+  {
+    "district": "Aricanduva",
+    "neighborhood": "Jardim Catarina",
+    "street": "Rua Antonio Ferraciolli",
+    "number": "283",
+    "cep": "03910070",
+    "latitude": -23.58429,
+    "longitude": -46.513821
+  },
+  {
+    "district": "Artur Alvim",
+    "neighborhood": "Conjunto Habitacional Padre José de Anchieta",
+    "street": "Avenida Sylvio Torres",
+    "number": "290",
+    "cep": "03589010",
+    "latitude": -23.5529,
+    "longitude": -46.487701
+  },
+  {
+    "district": "Barra Funda",
+    "neighborhood": "Barra Funda",
+    "street": "Rua Marta",
+    "number": "33",
+    "cep": "01155010",
+    "latitude": -23.53116,
+    "longitude": -46.663219
+  },
+  {
+    "district": "Bela Vista",
+    "neighborhood": "Bela Vista",
+    "street": "Maestro Cardim",
+    "number": "769",
+    "cep": "01323900",
+    "latitude": -23.569901,
+    "longitude": -46.646198
+  },
+  {
+    "district": "Belem",
+    "neighborhood": "Alto da Mooca",
+    "street": "Rua Itaqueri",
+    "number": "372",
+    "cep": "03178000",
+    "latitude": -23.552139,
+    "longitude": -46.585609
+  },
+  {
+    "district": "Bom Retiro",
+    "neighborhood": "Bom Retiro",
+    "street": "Avenida Estado",
+    "number": "1949",
+    "cep": "01107000",
+    "latitude": -23.532508,
+    "longitude": -46.625105
+  },
+  {
+    "district": "Brás",
+    "neighborhood": "Mooca",
+    "street": "Rua da Mooca",
+    "number": "363",
+    "cep": "03103000",
+    "latitude": -23.553539,
+    "longitude": -46.621601
+  },
+  {
+    "district": "Brasilandia",
+    "neighborhood": "Vila Nina",
+    "street": "Rua Jeronimo Souto Maior",
+    "number": "120",
+    "cep": "02834090",
+    "latitude": -23.4757,
+    "longitude": -46.6931
+  },
+  {
+    "district": "Butanta",
+    "neighborhood": "Jardim Arpoador",
+    "street": "Km 195 Raposo Tavares",
+    "number": "S/N",
+    "cep": "05577300",
+    "latitude": -23.589899,
+    "longitude": -46.796299
+  },
+  {
+    "district": "Cachoeirinha",
+    "neighborhood": "Vila Roque",
+    "street": "Rua Atlantico Meridional",
+    "number": "116",
+    "cep": "02474125",
+    "latitude": -23.477301,
+    "longitude": -46.658298
+  },
+  {
+    "district": "Cambuci",
+    "neighborhood": "Cambuci",
+    "street": "Avenida Lacerda Franco",
+    "number": "1641",
+    "cep": "01536001",
+    "latitude": -23.57708,
+    "longitude": -46.62495
+  },
+  {
+    "district": "Campo Belo",
+    "neighborhood": "Parque Jabaquara",
+    "street": "Rua Abreu e Lima Padre",
+    "number": "107",
+    "cep": "04358130",
+    "latitude": -23.6387,
+    "longitude": -46.653599
+  },
+  {
+    "district": "Campo Grande",
+    "neighborhood": "Jardim Santa Cruz",
+    "street": "Rua São Constantino",
+    "number": "180",
+    "cep": "04456000",
+    "latitude": -23.68392,
+    "longitude": -46.681019
+  },
+  {
+    "district": "Campo Limpo",
+    "neighborhood": "Jardim Mitsutani",
+    "street": "Rua Domingos Sequeira",
+    "number": "40",
+    "cep": "05791050",
+    "latitude": -23.64871,
+    "longitude": -46.7836
+  },
+  {
+    "district": "Cangaiba",
+    "neighborhood": "Vila Rui Barbosa",
+    "street": "Rua Quarunas",
+    "number": "352",
+    "cep": "03734220",
+    "latitude": -23.51226,
+    "longitude": -46.525558
+  },
+  {
+    "district": "Capao Redondo",
+    "neighborhood": "Chacara Santa Maria",
+    "street": "Rua Luar do Sertao",
+    "number": "165",
+    "cep": "05879450",
+    "latitude": -23.68704,
+    "longitude": -46.792511
+  },
+  {
+    "district": "Carrao",
+    "neighborhood": "Vila Fernandes",
+    "street": "Rua Vacanga",
+    "number": "415",
+    "cep": "03433025",
+    "latitude": -23.560471,
+    "longitude": -46.531349
+  },
+  {
+    "district": "Casa Verde",
+    "neighborhood": "Casa Verde",
+    "street": "Praça Dirceu de Lima",
+    "number": "617",
+    "cep": "02515050",
+    "latitude": -23.510361,
+    "longitude": -46.6581
+  },
+  {
+    "district": "Cidade Ademar",
+    "neighborhood": "Cidade Julia",
+    "street": "Avenida Angelo Cristianini",
+    "number": "1434",
+    "cep": "04424000",
+    "latitude": -23.69055,
+    "longitude": -46.643749
+  },
+  {
+    "district": "Cidade Dutra",
+    "neighborhood": "Jardim São Rafael",
+    "street": "Rua Amador Arrais Frei",
+    "number": "100",
+    "cep": "04860050",
+    "latitude": -23.761,
+    "longitude": -46.7173
+  },
+  {
+    "district": "Cidade Lider",
+    "neighborhood": "Parque Savoy City",
+    "street": "Rua Japarana",
+    "number": "98",
+    "cep": "03570310",
+    "latitude": -23.573641,
+    "longitude": -46.492802
+  },
+  {
+    "district": "Cidade Tiradentes",
+    "neighborhood": "Cidade Tiradentes",
+    "street": "Rua José Pinto",
+    "number": "10",
+    "cep": "08471520",
+    "latitude": -23.60689,
+    "longitude": -46.402481
+  },
+  {
+    "district": "Consolacao",
+    "neighborhood": "Consolacao",
+    "street": "Rua da Consolacao",
+    "number": "1289",
+    "cep": "01301100",
+    "latitude": -23.54994,
+    "longitude": -46.653461
+  },
+  {
+    "district": "Cursino",
+    "neighborhood": "Vila Moraes",
+    "street": "Rua Simao Lopes",
+    "number": "925",
+    "cep": "04167001",
+    "latitude": -23.633209,
+    "longitude": -46.613091
+  },
+  {
+    "district": "Ermelino Matarazzo",
+    "neighborhood": "Vila Robertina",
+    "street": "Avenida Manoel dos Santos Braga",
+    "number": "391",
+    "cep": "03807320",
+    "latitude": -23.502319,
+    "longitude": -46.476311
+  },
+  {
+    "district": "Freguesia do O",
+    "neighborhood": "Vila Albertina",
+    "street": "Rua Carolina Maria do Carmo",
+    "number": "30",
+    "cep": "02729080",
+    "latitude": -23.503799,
+    "longitude": -46.6926
+  },
+  {
+    "district": "Grajau",
+    "neighborhood": "Parque Maria Fernandes",
+    "street": "Avenida Paulo Guilguer Reimberg",
+    "number": "9865",
+    "cep": "04858570",
+    "latitude": -23.815572,
+    "longitude": -46.670312
+  },
+  {
+    "district": "Guaianases",
+    "neighborhood": "Conjunto Habitacional Juscelino Kubitschek",
+    "street": "Avenida Utaro Kanai",
+    "number": "501",
+    "cep": "08465000",
+    "latitude": -23.5651,
+    "longitude": -46.397202
+  },
+  {
+    "district": "Iguatemi",
+    "neighborhood": "3 Divisao",
+    "street": "Rua Golfo da California",
+    "number": "8",
+    "cep": "08382190",
+    "latitude": -23.62262,
+    "longitude": -46.414249
+  },
+  {
+    "district": "Ipiranga",
+    "neighborhood": "Vila Nair",
+    "street": "Rua Bambore",
+    "number": "546",
+    "cep": "04278060",
+    "latitude": -23.602659,
+    "longitude": -46.608212
+  },
+  {
+    "district": "Itaim Bibi",
+    "neighborhood": "Brooklin Paulista",
+    "street": "Avenida Portugal",
+    "number": "1220",
+    "cep": "04559002",
+    "latitude": -23.61834,
+    "longitude": -46.684921
+  },
+  {
+    "district": "Itaim Paulista",
+    "neighborhood": "Jardim Miriam",
+    "street": "Rua Manuel Alvares Pimentel",
+    "number": "801",
+    "cep": "08141000",
+    "latitude": -23.52121,
+    "longitude": -46.387459
+  },
+  {
+    "district": "Itaquera",
+    "neighborhood": "Itaquera",
+    "street": "Rua Lagoa Tai Grande",
+    "number": "475",
+    "cep": "08290500",
+    "latitude": -23.55125,
+    "longitude": -46.457932
+  },
+  {
+    "district": "Jabaquara",
+    "neighborhood": "Americanopolis",
+    "street": "Rua Hugo Vitor Silva",
+    "number": "508",
+    "cep": "04340040",
+    "latitude": -23.66791,
+    "longitude": -46.642399
+  },
+  {
+    "district": "Jacana",
+    "neighborhood": "Parque Edu Chaves",
+    "street": "Rua Baracca Major",
+    "number": "584",
+    "cep": "02232000",
+    "latitude": -23.478371,
+    "longitude": -46.56237
+  },
+  {
+    "district": "Jaguara",
+    "neighborhood": "Vila dos Remedios",
+    "street": "Rua Carlos Alberto Vanzolini",
+    "number": "397",
+    "cep": "05103060",
+    "latitude": -23.513574,
+    "longitude": -46.751968
+  },
+  {
+    "district": "Jaguare",
+    "neighborhood": "Vila Lageado",
+    "street": "Rua Eulo Maroni",
+    "number": "244",
+    "cep": "05338100",
+    "latitude": -23.5508,
+    "longitude": -46.746899
+  },
+  {
+    "district": "Jaragua",
+    "neighborhood": "Vila Jaragua",
+    "street": "Estrada Turistica do Jaragua",
+    "number": "3710",
+    "cep": "05161000",
+    "latitude": -23.46373,
+    "longitude": -46.75338
+  },
+  {
+    "district": "Jardim Angela",
+    "neighborhood": "Vila do Sol",
+    "street": "Rua Americo Turini",
+    "number": "1860",
+    "cep": "04962020",
+    "latitude": -23.742661,
+    "longitude": -46.782639
+  },
+  {
+    "district": "Jardim Helena",
+    "neighborhood": "Parque Paulistano",
+    "street": "Rua Carlo Bibiena",
+    "number": "152",
+    "cep": "08081380",
+    "latitude": -23.49057,
+    "longitude": -46.421581
+  },
+  {
+    "district": "Jardim Paulista",
+    "neighborhood": "Jardim America",
+    "street": "Rua João Moura",
+    "number": "727",
+    "cep": "05412001",
+    "latitude": -23.5592,
+    "longitude": -46.6786
+  },
+  {
+    "district": "Jardim São Luis",
+    "neighborhood": "Jardim Riviera",
+    "street": "Rua Silvilino Mantovanini",
+    "number": "300",
+    "cep": "04925040",
+    "latitude": -23.7059,
+    "longitude": -46.745461
+  },
+  {
+    "district": "José Bonifacio",
+    "neighborhood": "Jardim Pedra Branca",
+    "street": "Rua Begonia Real",
+    "number": "200",
+    "cep": "08490850",
+    "latitude": -23.5821,
+    "longitude": -46.419701
+  },
+  {
+    "district": "Lajeado",
+    "neighborhood": "Jardim Fanganiello",
+    "street": "Rua Francisco Capara",
+    "number": "75",
+    "cep": "08450570",
+    "latitude": -23.546089,
+    "longitude": -46.38974
+  },
+  {
+    "district": "Lapa",
+    "neighborhood": "Vila Romana",
+    "street": "Rua Cerro Cora",
+    "number": "770",
+    "cep": "05061100",
+    "latitude": -23.540079,
+    "longitude": -46.70367
+  },
+  {
+    "district": "Liberdade",
+    "neighborhood": "Liberdade",
+    "street": "Rua Antonio Prudente Professor",
+    "number": "211",
+    "cep": "01509010",
+    "latitude": -23.56551,
+    "longitude": -46.63789
+  },
+  {
+    "district": "Limao",
+    "neighborhood": "Vila Siqueira",
+    "street": "Rua Estela Borges Morato",
+    "number": "500",
+    "cep": "02722000",
+    "latitude": -23.502701,
+    "longitude": -46.6833
+  },
+  {
+    "district": "Mandaqui",
+    "neighborhood": "Vila Mariza Mazzei",
+    "street": "Rua Francisco Bruno",
+    "number": "67",
+    "cep": "02432070",
+    "latitude": -23.4856,
+    "longitude": -46.639702
+  },
+  {
+    "district": "Marsilac",
+    "neighborhood": "Engenheiro Marsilac",
+    "street": "Rua Filomena Belmont",
+    "number": "75",
+    "cep": "04891370",
+    "latitude": -23.90815,
+    "longitude": -46.706379
+  },
+  {
+    "district": "Moema",
+    "neighborhood": "Indianopolis",
+    "street": "Rua Irauna",
+    "number": "815",
+    "cep": "04518061",
+    "latitude": -23.6085,
+    "longitude": -46.67445
+  },
+  {
+    "district": "Mooca",
+    "neighborhood": "Parque da Mooca",
+    "street": "Rua Roberto Ugolini Comendador",
+    "number": "300",
+    "cep": "03125010",
+    "latitude": -23.57564,
+    "longitude": -46.588341
+  },
+  {
+    "district": "Morumbi",
+    "neighborhood": "Vila Progredior",
+    "street": "Rua Armando Lombardi Dom",
+    "number": "223",
+    "cep": "05616010",
+    "latitude": -23.5874,
+    "longitude": -46.720699
+  },
+  {
+    "district": "Parelheiros",
+    "neighborhood": "Barragem",
+    "street": "Rua Dois",
+    "number": "2",
+    "cep": "04896020",
+    "latitude": -23.877899,
+    "longitude": -46.650799
+  },
+  {
+    "district": "Pari",
+    "neighborhood": "Caninde",
+    "street": "Caninde",
+    "number": "153",
+    "cep": "03033000",
+    "latitude": -23.533239,
+    "longitude": -46.62405
+  },
+  {
+    "district": "Parque do Carmo",
+    "neighborhood": "Gleba do Pessego",
+    "street": "Rua Rio Birigui",
+    "number": "S/N",
+    "cep": "08265290",
+    "latitude": -23.584,
+    "longitude": -46.452801
+  },
+  {
+    "district": "Pedreira",
+    "neighborhood": "Sete Praias",
+    "street": "Rua do Alvarenga",
+    "number": "5112",
+    "cep": "04476050",
+    "latitude": -23.714809,
+    "longitude": -46.6343
+  },
+  {
+    "district": "Penha",
+    "neighborhood": "Penha de Franca",
+    "street": "Rua Mirandinha",
+    "number": "881",
+    "cep": "03641000",
+    "latitude": -23.53001,
+    "longitude": -46.535561
+  },
+  {
+    "district": "Perdizes",
+    "neighborhood": "Vila Anglo Brasileira",
+    "street": "Rua Pedro Soares de Almeida",
+    "number": "134",
+    "cep": "05029030",
+    "latitude": -23.54225,
+    "longitude": -46.695129
+  },
+  {
+    "district": "Perus",
+    "neighborhood": "Vila Perus",
+    "street": "Rua Julio Cesar Leal",
+    "number": "15",
+    "cep": "05208000",
+    "latitude": -23.413601,
+    "longitude": -46.755421
+  },
+  {
+    "district": "Pinheiros",
+    "neighborhood": "Pinheiros",
+    "street": "Pedroso de Morais",
+    "number": "420",
+    "cep": "05420000",
+    "latitude": -23.565701,
+    "longitude": -46.689899
+  },
+  {
+    "district": "Pirituba",
+    "neighborhood": "Piqueri",
+    "street": "Rua José da Silva Martha",
+    "number": "150",
+    "cep": "02913100",
+    "latitude": -23.50186,
+    "longitude": -46.7132
+  },
+  {
+    "district": "Ponte Rasa",
+    "neighborhood": "Vila Uniao Zona Leste",
+    "street": "Rua Carlo Grazia Engenheiro",
+    "number": "500",
+    "cep": "03683150",
+    "latitude": -23.52183,
+    "longitude": -46.482361
+  },
+  {
+    "district": "Raposo Tavares",
+    "neighborhood": "Jardim João Xxiii",
+    "street": "Rua Vaticano",
+    "number": "245",
+    "cep": "05569120",
+    "latitude": -23.602329,
+    "longitude": -46.79509
+  },
+  {
+    "district": "Republica",
+    "neighborhood": "Bela Vista",
+    "street": "Rua Major Diogo",
+    "number": "200",
+    "cep": "01324000",
+    "latitude": -23.55488,
+    "longitude": -46.643101
+  },
+  {
+    "district": "Rio Pequeno",
+    "neighborhood": "Jardim Maria Luiza",
+    "street": "Avenida Engenheiro Heitor Antonio Eiras Garcia",
+    "number": "1874",
+    "cep": "05588001",
+    "latitude": -23.582701,
+    "longitude": -46.749699
+  },
+  {
+    "district": "Sacoma",
+    "neighborhood": "Jardim São Saverio",
+    "street": "Rua Memorial de Aires",
+    "number": "478",
+    "cep": "04194280",
+    "latitude": -23.65308,
+    "longitude": -46.612289
+  },
+  {
+    "district": "Santa Cecilia",
+    "neighborhood": "Vila Buarque",
+    "street": "Rua Cesario Mota Junior Doutor",
+    "number": "112",
+    "cep": "01221020",
+    "latitude": -23.54269,
+    "longitude": -46.64893
+  },
+  {
+    "district": "Santana",
+    "neighborhood": "Santana",
+    "street": "General Ataliba Leonel",
+    "number": "656",
+    "cep": "02088900",
+    "latitude": -23.504629,
+    "longitude": -46.621078
+  },
+  {
+    "district": "Santo Amaro",
+    "neighborhood": "Santo Amaro",
+    "street": "Rua Padre José Maria",
+    "number": "210",
+    "cep": "04753060",
+    "latitude": -23.653931,
+    "longitude": -46.710018
+  },
+  {
+    "district": "São Domingos",
+    "neighborhood": "Vila Mangalot",
+    "street": "Praça Itaquirai",
+    "number": "1",
+    "cep": "05132110",
+    "latitude": -23.5049,
+    "longitude": -46.74432
+  },
+  {
+    "district": "São Lucas",
+    "neighborhood": "Vila Industrial",
+    "street": "Rua Vitor Hess",
+    "number": "51",
+    "cep": "03253005",
+    "latitude": -23.61125,
+    "longitude": -46.535191
+  },
+  {
+    "district": "São Mateus",
+    "neighborhood": "Jardim Santa Adelia",
+    "street": "Rua Alberto de Macedo",
+    "number": "127",
+    "cep": "03973000",
+    "latitude": -23.620729,
+    "longitude": -46.479691
+  },
+  {
+    "district": "São Miguel",
+    "neighborhood": "Vila Progresso Zona Leste",
+    "street": "Rua Cecilia Iter",
+    "number": "150",
+    "cep": "08240730",
+    "latitude": -23.5228,
+    "longitude": -46.441448
+  },
+  {
+    "district": "São Rafael",
+    "neighborhood": "Jardim Santo Andre",
+    "street": "Rua Godoi Bueno",
+    "number": "19",
+    "cep": "08390400",
+    "latitude": -23.63419,
+    "longitude": -46.44445
+  },
+  {
+    "district": "Sapopemba",
+    "neighborhood": "Vila Cardoso Franco",
+    "street": "Rua Batista Fergusio",
+    "number": "1754",
+    "cep": "03978180",
+    "latitude": -23.6252,
+    "longitude": -46.505699
+  },
+  {
+    "district": "Saude",
+    "neighborhood": "Jabaquara",
+    "street": "Avenida Jabaquara",
+    "number": "2875",
+    "cep": "04045004",
+    "latitude": -23.628401,
+    "longitude": -46.643902
+  },
+  {
+    "district": "Sé",
+    "neighborhood": "Brás",
+    "street": "Rua da Figueira",
+    "number": "500",
+    "cep": "03003000",
+    "latitude": -23.547346,
+    "longitude": -46.627693
+  },
+  {
+    "district": "Socorro",
+    "neighborhood": "Jardim Ipanema Zona Sul",
+    "street": "Rua Antonio Mariano",
+    "number": "254",
+    "cep": "04784000",
+    "latitude": -23.68881,
+    "longitude": -46.708038
+  },
+  {
+    "district": "Tatuape",
+    "neighborhood": "Jardim das Rosas Zona Leste",
+    "street": "Rua Sebastiao Marchesoni",
+    "number": "247",
+    "cep": "03909070",
+    "latitude": -23.586779,
+    "longitude": -46.511822
+  },
+  {
+    "district": "Tremembe",
+    "neighborhood": "Tremembe",
+    "street": "Rua Antonio Pestana",
+    "number": "58",
+    "cep": "02370020",
+    "latitude": -23.4613,
+    "longitude": -46.621899
+  },
+  {
+    "district": "Tucuruvi",
+    "neighborhood": "Vila Gustavo",
+    "street": "Rua Grota",
+    "number": "483",
+    "cep": "02206010",
+    "latitude": -23.481831,
+    "longitude": -46.5961
+  },
+  {
+    "district": "Vila Andrade",
+    "neighborhood": "Jardim Santo Antonio",
+    "street": "Rua Afonso Vidal",
+    "number": "600",
+    "cep": "05723330",
+    "latitude": -23.639999,
+    "longitude": -46.732559
+  },
+  {
+    "district": "Vila Curuca",
+    "neighborhood": "Parque Santa Rita",
+    "street": "Avenida João Batista Santiago",
+    "number": "S/N",
+    "cep": "08150030",
+    "latitude": -23.52137,
+    "longitude": -46.410671
+  },
+  {
+    "district": "Vila Formosa",
+    "neighborhood": "Chacara Belenzinho",
+    "street": "Rua Joaquim Peixoto",
+    "number": "108",
+    "cep": "03382167",
+    "latitude": -23.579,
+    "longitude": -46.528728
+  },
+  {
+    "district": "Vila Guilherme",
+    "neighborhood": "Vila Guilherme",
+    "street": "Rua José Bernardo Pinto",
+    "number": "758",
+    "cep": "02055001",
+    "latitude": -23.515671,
+    "longitude": -46.604679
+  },
+  {
+    "district": "Vila Jacui",
+    "neighborhood": "Limoeiro",
+    "street": "Rua Tabacarana",
+    "number": "10",
+    "cep": "08051100",
+    "latitude": -23.5177,
+    "longitude": -46.469929
+  },
+  {
+    "district": "Vila Leopoldina",
+    "neighborhood": "Vila Leopoldina",
+    "street": "Doutora Ruth Cardoso",
+    "number": "1405",
+    "cep": "05310000",
+    "latitude": -23.532551,
+    "longitude": -46.74633
+  },
+  {
+    "district": "Vila Maria",
+    "neighborhood": "Vila Maria",
+    "street": "Avenida Morvan Dias de Figueiredo",
+    "number": "4210",
+    "cep": "02170000",
+    "latitude": -23.52792,
+    "longitude": -46.59304
+  },
+  {
+    "district": "Vila Mariana",
+    "neighborhood": "Vila Clementino",
+    "street": "Rua José de Magalhaes",
+    "number": "477",
+    "cep": "04026090",
+    "latitude": -23.598301,
+    "longitude": -46.649311
+  },
+  {
+    "district": "Vila Matilde",
+    "neighborhood": "Jardim Maringa",
+    "street": "Rua Custodio Lobo",
+    "number": "29",
+    "cep": "03525080",
+    "latitude": -23.5525,
+    "longitude": -46.514259
+  },
+  {
+    "district": "Vila Medeiros",
+    "neighborhood": "Vl Sabrina",
+    "street": "Avenida Av Professor Castro Junior",
+    "number": "609",
+    "cep": "02138030",
+    "latitude": -23.497601,
+    "longitude": -46.574299
+  },
+  {
+    "district": "Vila Prudente",
+    "neighborhood": "Vila California",
+    "street": "Rua Santa Genoveva",
+    "number": "47",
+    "cep": "03213050",
+    "latitude": -23.60598,
+    "longitude": -46.560749
+  },
+  {
+    "district": "Vila Sonia",
+    "neighborhood": "Jardim Jussara",
+    "street": "Rua Aristides Guilhem Almirante",
+    "number": "38",
+    "cep": "05526000",
+    "latitude": -23.6033,
+    "longitude": -46.746799
+  },
+  {
+    "district": "Agua Rasa",
+    "neighborhood": "Vila Santa Clara",
+    "street": "Rua Buenopolis",
+    "number": "234",
+    "cep": "03161010",
+    "latitude": -23.575979,
+    "longitude": -46.56419
+  },
+  {
+    "district": "Alto de Pinheiros",
+    "neighborhood": "C Cesar",
+    "street": "Avenida Av Doutor Eneas Carvalho de Aguiar",
+    "number": "255",
+    "cep": "05403000",
+    "latitude": -23.5567,
+    "longitude": -46.670101
+  },
+  {
+    "district": "Anhanguera",
+    "neighborhood": "Vila Sulina",
+    "street": "Rua Luisa Maria Rosa",
+    "number": "11",
+    "cep": "05264050",
+    "latitude": -23.445841,
+    "longitude": -46.78429
+  },
+  {
+    "district": "Aricanduva",
+    "neighborhood": "Jardim Colorado",
+    "street": "Avenida Barreira Grande",
+    "number": "795",
+    "cep": "03386000",
+    "latitude": -23.584141,
+    "longitude": -46.5271
+  },
+  {
+    "district": "Artur Alvim",
+    "neighborhood": "Conjunto Habitacional Padre José de Anchieta",
+    "street": "Avenida Waldemar Tietz",
+    "number": "1477",
+    "cep": "03589001",
+    "latitude": -23.55139,
+    "longitude": -46.48138
+  },
+  {
+    "district": "Barra Funda",
+    "neighborhood": "Barra Funda",
+    "street": "Rua Conselheiro Brotero",
+    "number": "100",
+    "cep": "01154000",
+    "latitude": -23.528379,
+    "longitude": -46.655498
+  },
+  {
+    "district": "Bom Retiro",
+    "neighborhood": "Bom Retiro",
+    "street": "Praça Cel Fernando Prestes",
+    "number": "197",
+    "cep": "01124060",
+    "latitude": -23.53013,
+    "longitude": -46.63409
+  },
+  {
+    "district": "Brás",
+    "neighborhood": "Mooca",
+    "street": "Rua Itapira",
+    "number": "183",
+    "cep": "03102060",
+    "latitude": -23.55188,
+    "longitude": -46.621632
+  },
+  {
+    "district": "Brasilandia",
+    "neighborhood": "Vila Penteado",
+    "street": "Rua Emilio Kemp",
+    "number": "126",
+    "cep": "02865000",
+    "latitude": -23.47373,
+    "longitude": -46.677509
+  },
+  {
+    "district": "Butanta",
+    "neighborhood": "Jardim Peri Peri",
+    "street": "Rua Geremia Lunardelli",
+    "number": "370",
+    "cep": "05537100",
+    "latitude": -23.586399,
+    "longitude": -46.735298
+  },
+  {
+    "district": "Cachoeirinha",
+    "neighborhood": "Vila dos Andrades",
+    "street": "Rua Mendonca Junior",
+    "number": "611",
+    "cep": "02610010",
+    "latitude": -23.4769,
+    "longitude": -46.664101
+  },
+  {
+    "district": "Cambuci",
+    "neighborhood": "Cambuci",
+    "street": "Avenida Lins de Vasconcelos",
+    "number": "600",
+    "cep": "01538000",
+    "latitude": -23.568399,
+    "longitude": -46.621849
+  },
+  {
+    "district": "Campo Belo",
+    "neighborhood": "Brooklin Paulista",
+    "street": "Rua Joaquim Nabuco",
+    "number": "570",
+    "cep": "04621003",
+    "latitude": -23.62639,
+    "longitude": -46.681271
+  },
+  {
+    "district": "Campo Grande",
+    "neighborhood": "Vila Arriete",
+    "street": "Rua Francisco Madero",
+    "number": "16",
+    "cep": "04445090",
+    "latitude": -23.682899,
+    "longitude": -46.683521
+  },
+  {
+    "district": "Campo Limpo",
+    "neighborhood": "Jardim Umuarama",
+    "street": "Rua Juan Aldama",
+    "number": "100",
+    "cep": "05783130",
+    "latitude": -23.64724,
+    "longitude": -46.769852
+  },
+  {
+    "district": "Cangaiba",
+    "neighborhood": "Jardim Jau Zona Leste",
+    "street": "Rua Malacacheta",
+    "number": "118",
+    "cep": "03713020",
+    "latitude": -23.5116,
+    "longitude": -46.54623
+  },
+  {
+    "district": "Capao Redondo",
+    "neighborhood": "Chacara Santa Maria",
+    "street": "Rua Luar do Sertao",
+    "number": "S/N",
+    "cep": "05879450",
+    "latitude": -23.686741,
+    "longitude": -46.792591
+  },
+  {
+    "district": "Carrao",
+    "neighborhood": "Vila Carrao",
+    "street": "Rua Atlantida",
+    "number": "8",
+    "cep": "03421030",
+    "latitude": -23.55512,
+    "longitude": -46.546001
+  },
+  {
+    "district": "Casa Verde",
+    "neighborhood": "Jardim Laranjeiras",
+    "street": "Rua Santa Prisca",
+    "number": "122",
+    "cep": "02518010",
+    "latitude": -23.50878,
+    "longitude": -46.663288
+  },
+  {
+    "district": "Cidade Ademar",
+    "neighborhood": "Cidade Julia",
+    "street": "Rua Guaicuri",
+    "number": "S/N",
+    "cep": "04425000",
+    "latitude": -23.68997,
+    "longitude": -46.64484
+  },
+  {
+    "district": "Cidade Dutra",
+    "neighborhood": "Jardim Alpino",
+    "street": "Rua Domingos Faustino Sarmiento",
+    "number": "422",
+    "cep": "04836360",
+    "latitude": -23.74572,
+    "longitude": -46.711781
+  },
+  {
+    "district": "Cidade Lider",
+    "neighborhood": "Jardim Santa Terezinha Zona Leste",
+    "street": "Rua Antonio Lombardo",
+    "number": "140",
+    "cep": "03572230",
+    "latitude": -23.5735,
+    "longitude": -46.499199
+  },
+  {
+    "district": "Cidade Tiradentes",
+    "neighborhood": "Cidade Tiradentes",
+    "street": "Rua Padre Aldemar Moreira",
+    "number": "200",
+    "cep": "08471010",
+    "latitude": -23.599698,
+    "longitude": -46.399567
+  },
+  {
+    "district": "Consolacao",
+    "neighborhood": "Consolacao",
+    "street": "Rua João Guimaraes Rosa",
+    "number": "111",
+    "cep": "01303030",
+    "latitude": -23.54961,
+    "longitude": -46.647049
+  },
+  {
+    "district": "Cursino",
+    "neighborhood": "Agua Funda",
+    "street": "Rua Francisco Hurtado",
+    "number": "303",
+    "cep": "04156040",
+    "latitude": -23.63249,
+    "longitude": -46.62249
+  },
+  {
+    "district": "Ermelino Matarazzo",
+    "neighborhood": "Ermelino Matarazzo",
+    "street": "Avenida Paranagua",
+    "number": "472",
+    "cep": "03806000",
+    "latitude": -23.501619,
+    "longitude": -46.476509
+  },
+  {
+    "district": "Freguesia do O",
+    "neighborhood": "Nossa Senhora do O",
+    "street": "Avenida Itaberaba",
+    "number": "145",
+    "cep": "02734000",
+    "latitude": -23.499901,
+    "longitude": -46.69788
+  },
+  {
+    "district": "Grajau",
+    "neighborhood": "Jardim Varginha",
+    "street": "Rua Henrique Muzzio",
+    "number": "233",
+    "cep": "04857040",
+    "latitude": -23.786449,
+    "longitude": -46.684719
+  },
+  {
+    "district": "Guaianases",
+    "neighborhood": "Conjunto Habitacional Juscelino Kubitschek",
+    "street": "Floriano Arresti",
+    "number": "53",
+    "cep": "08465220",
+    "latitude": -23.564651,
+    "longitude": -46.39378
+  },
+  {
+    "district": "Iguatemi",
+    "neighborhood": "Jardim Arantes",
+    "street": "Rua do Jacarandapaulista",
+    "number": "80",
+    "cep": "08382557",
+    "latitude": -23.622181,
+    "longitude": -46.41618
+  },
+  {
+    "district": "Ipiranga",
+    "neighborhood": "Ipiranga",
+    "street": "Rua Greenfeld",
+    "number": "130",
+    "cep": "04218100",
+    "latitude": -23.6012,
+    "longitude": -46.602558
+  },
+  {
+    "district": "Itaim Bibi",
+    "neighborhood": "Brooklin Paulista",
+    "street": "Avenida Portugal",
+    "number": "859",
+    "cep": "04559002",
+    "latitude": -23.6155,
+    "longitude": -46.682201
+  },
+  {
+    "district": "Itaim Paulista",
+    "neighborhood": "Jardim Laura",
+    "street": "Rua Margarida Carlos de Albuquerque",
+    "number": "288",
+    "cep": "08142260",
+    "latitude": -23.520269,
+    "longitude": -46.384621
+  },
+  {
+    "district": "Itaquera",
+    "neighborhood": "Itaquera",
+    "street": "Rua Fontoura Xavier",
+    "number": "542",
+    "cep": "08295300",
+    "latitude": -23.54965,
+    "longitude": -46.456051
+  },
+  {
+    "district": "Jabaquara",
+    "neighborhood": "Cidade Domitila",
+    "street": "Avenida Rodrigues Montemor",
+    "number": "395",
+    "cep": "04387002",
+    "latitude": -23.663111,
+    "longitude": -46.64893
+  },
+  {
+    "district": "Jacana",
+    "neighborhood": "Parque Edu Chaves",
+    "street": "Rua Busse Capitao",
+    "number": "391",
+    "cep": "02232050",
+    "latitude": -23.4736,
+    "longitude": -46.563301
+  },
+  {
+    "district": "Jaguara",
+    "neighborhood": "Vila Jaguara",
+    "street": "Rua Artur Orlando",
+    "number": "907",
+    "cep": "05118000",
+    "latitude": -23.512199,
+    "longitude": -46.7491
+  },
+  {
+    "district": "Jaguare",
+    "neighborhood": "Jaguare",
+    "street": "Avenida Presidente Altino",
+    "number": "1131",
+    "cep": "05323001",
+    "latitude": -23.5452,
+    "longitude": -46.751099
+  },
+  {
+    "district": "Jaragua",
+    "neighborhood": "Jaragua",
+    "street": "Avenida Jerimanduba",
+    "number": "561",
+    "cep": "05181000",
+    "latitude": -23.45517,
+    "longitude": -46.74622
+  },
+  {
+    "district": "Jardim Angela",
+    "neighborhood": "Jardim Horizonte Azul",
+    "street": "Avenida dos Funcionarios Publicos",
+    "number": "1355",
+    "cep": "04962000",
+    "latitude": -23.74095,
+    "longitude": -46.782188
+  },
+  {
+    "district": "Jardim Helena",
+    "neighborhood": "Vila Seabra",
+    "street": "Rua Tiete",
+    "number": "49",
+    "cep": "08180410",
+    "latitude": -23.490391,
+    "longitude": -46.407681
+  },
+  {
+    "district": "Jardim Paulista",
+    "neighborhood": "Pacaembu",
+    "street": "Avenida Av Dr Arnaldo",
+    "number": "165",
+    "cep": "01246000",
+    "latitude": -23.555799,
+    "longitude": -46.667198
+  },
+  {
+    "district": "Jardim São Luis",
+    "neighborhood": "Chacara Vista Alegre",
+    "street": "Rua Dona Virgnia",
+    "number": "100",
+    "cep": "04922120",
+    "latitude": -23.69298,
+    "longitude": -46.742069
+  },
+  {
+    "district": "José Bonifacio",
+    "neighborhood": "Colonia Zona Leste",
+    "street": "Rua Tomoichi Shimizu",
+    "number": "758",
+    "cep": "08260140",
+    "latitude": -23.576019,
+    "longitude": -46.436729
+  },
+  {
+    "district": "Lajeado",
+    "neighborhood": "Lajeado",
+    "street": "Rua Chapada Diamantina",
+    "number": "521",
+    "cep": "08450150",
+    "latitude": -23.543619,
+    "longitude": -46.40242
+  },
+  {
+    "district": "Lapa",
+    "neighborhood": "Vila Romana",
+    "street": "Rua Acurua",
+    "number": "241",
+    "cep": "05053000",
+    "latitude": -23.537861,
+    "longitude": -46.7006
+  },
+  {
+    "district": "Limao",
+    "neighborhood": "Vila Siqueira",
+    "street": "Rua Vicente Ferreira Leite",
+    "number": "489",
+    "cep": "02723000",
+    "latitude": -23.498593,
+    "longitude": -46.680654
+  },
+  {
+    "district": "Mandaqui",
+    "neighborhood": "Imirim",
+    "street": "Rua Rodrigues Alvarenga",
+    "number": "308",
+    "cep": "02471160",
+    "latitude": -23.483299,
+    "longitude": -46.6511
+  },
+  {
+    "district": "Marsilac",
+    "neighborhood": "Embura",
+    "street": "Km 458 Marcilac Engenheiro",
+    "number": "8029",
+    "cep": "04893000",
+    "latitude": -23.87793,
+    "longitude": -46.740471
+  },
+  {
+    "district": "Moema",
+    "neighborhood": "Indianopolis",
+    "street": "Alameda Irae",
+    "number": "155",
+    "cep": "04075000",
+    "latitude": -23.6012,
+    "longitude": -46.658298
+  },
+  {
+    "district": "Mooca",
+    "neighborhood": "Alto da Mooca",
+    "street": "Rua Japuruchita",
+    "number": "300",
+    "cep": "03128070",
+    "latitude": -23.570344,
+    "longitude": -46.585445
+  },
+  {
+    "district": "Parelheiros",
+    "neighborhood": "Jardim das Fontes",
+    "street": "Rua Enrique Amorim",
+    "number": "101",
+    "cep": "04894410",
+    "latitude": -23.86809,
+    "longitude": -46.756191
+  },
+  {
+    "district": "Pari",
+    "neighborhood": "Pari",
+    "street": "Avenida Carlos de Campos",
+    "number": "841",
+    "cep": "03028001",
+    "latitude": -23.525459,
+    "longitude": -46.610641
+  },
+  {
+    "district": "Parque do Carmo",
+    "neighborhood": "Jardim Nossa Senhora do Carmo",
+    "street": "Rua Joaquim Meira de Siqueira",
+    "number": "200",
+    "cep": "08275490",
+    "latitude": -23.575399,
+    "longitude": -46.4851
+  },
+  {
+    "district": "Pedreira",
+    "neighborhood": "Jardim Apura",
+    "street": "Rua Adelina Maria de Jesus",
+    "number": "15",
+    "cep": "04470261",
+    "latitude": -23.710529,
+    "longitude": -46.658451
+  },
+  {
+    "district": "Penha",
+    "neighborhood": "Vila Re",
+    "street": "Rua Pangaua",
+    "number": "210",
+    "cep": "03665010",
+    "latitude": -23.529881,
+    "longitude": -46.499142
+  },
+  {
+    "district": "Perus",
+    "neighborhood": "Jardim Adelfiore",
+    "street": "Rua Tarcon",
+    "number": "313",
+    "cep": "05223070",
+    "latitude": -23.408791,
+    "longitude": -46.740479
+  },
+  {
+    "district": "Pinheiros",
+    "neighborhood": "Pinheiros",
+    "street": "Rua Sumidouro",
+    "number": "66",
+    "cep": "05428010",
+    "latitude": -23.565044,
+    "longitude": -46.696243
+  },
+  {
+    "district": "Pirituba",
+    "neighborhood": "Jardim São Ricardo",
+    "street": "Rua Charles Silver",
+    "number": "51",
+    "cep": "05143210",
+    "latitude": -23.49629,
+    "longitude": -46.72253
+  },
+  {
+    "district": "Ponte Rasa",
+    "neighborhood": "Burgo Paulista",
+    "street": "Rua Conceicao do Castelo",
+    "number": "64",
+    "cep": "03681020",
+    "latitude": -23.52162,
+    "longitude": -46.488232
+  },
+  {
+    "district": "Raposo Tavares",
+    "neighborhood": "Jardim Esmeralda",
+    "street": "Avenida Heitor Antonio Eiras Garcia Engenheiro",
+    "number": "6821",
+    "cep": "05564200",
+    "latitude": -23.6017,
+    "longitude": -46.787201
+  },
+  {
+    "district": "Rio Pequeno",
+    "neighborhood": "Vila Butanta",
+    "street": "Avenida Nossa Senhora da Assuncao",
+    "number": "292",
+    "cep": "05359000",
+    "latitude": -23.573441,
+    "longitude": -46.742489
+  },
+  {
+    "district": "Sacoma",
+    "neighborhood": "Vila Santa Teresa Zona Sul",
+    "street": "Rua Gastao Formenti",
+    "number": "70",
+    "cep": "04187170",
+    "latitude": -23.64752,
+    "longitude": -46.593819
+  },
+  {
+    "district": "Santa Cecilia",
+    "neighborhood": "Vila Buarque",
+    "street": "Rua Imaculada Conceicao",
+    "number": "71",
+    "cep": "01226020",
+    "latitude": -23.538971,
+    "longitude": -46.653061
+  },
+  {
+    "district": "Santana",
+    "neighborhood": "Santana",
+    "street": "Rua Alfredo Pujol",
+    "number": "1555",
+    "cep": "02017013",
+    "latitude": -23.502302,
+    "longitude": -46.640553
+  },
+  {
+    "district": "Santo Amaro",
+    "neighborhood": "Santo Amaro",
+    "street": "Avenida Mario Lopes Leao",
+    "number": "1050",
+    "cep": "04754010",
+    "latitude": -23.65134,
+    "longitude": -46.715591
+  },
+  {
+    "district": "São Domingos",
+    "neighborhood": "Parque São Domingos",
+    "street": "Rua Agostinho dos Santos",
+    "number": "235",
+    "cep": "05125050",
+    "latitude": -23.502979,
+    "longitude": -46.738602
+  },
+  {
+    "district": "São Lucas",
+    "neighborhood": "Vila Elze",
+    "street": "Rua Doutor Monteiro de Barros",
+    "number": "110",
+    "cep": "03254120",
+    "latitude": -23.60803,
+    "longitude": -46.527561
+  },
+  {
+    "district": "São Mateus",
+    "neighborhood": "Cidade Satelite Santa Barbara",
+    "street": "Rua Alcion",
+    "number": "431",
+    "cep": "08331010",
+    "latitude": -23.611252,
+    "longitude": -46.468899
+  },
+  {
+    "district": "São Miguel",
+    "neighborhood": "Vila Progresso Zona Leste",
+    "street": "Rua Criuva",
+    "number": "516",
+    "cep": "08245300",
+    "latitude": -23.51738,
+    "longitude": -46.432812
+  },
+  {
+    "district": "São Rafael",
+    "neighborhood": "Jardim Rodolfo Pirani",
+    "street": "Avenida Rodolfo Pirani",
+    "number": "392",
+    "cep": "08310000",
+    "latitude": -23.6311,
+    "longitude": -46.461842
+  },
+  {
+    "district": "Sapopemba",
+    "neighborhood": "Fazenda da Juta",
+    "street": "Rua Lisa Noblet",
+    "number": "62",
+    "cep": "03977002",
+    "latitude": -23.62184,
+    "longitude": -46.48764
+  },
+  {
+    "district": "Saude",
+    "neighborhood": "São Judas",
+    "street": "Rua Doutor Mauricio de Lacerda",
+    "number": "322",
+    "cep": "04303191",
+    "latitude": -23.625799,
+    "longitude": -46.636101
+  },
+  {
+    "district": "Socorro",
+    "neighborhood": "Vila Californiazona Sul",
+    "street": "Rua Oscar Fernandes",
+    "number": "S/N",
+    "cep": "04775090",
+    "latitude": -23.685499,
+    "longitude": -46.702
+  },
+  {
+    "district": "Tatuape",
+    "neighborhood": "Tatuape",
+    "street": "Rua Tuiuti",
+    "number": "2965",
+    "cep": "03307005",
+    "latitude": -23.551399,
+    "longitude": -46.572899
+  },
+  {
+    "district": "Tremembe",
+    "neighborhood": "Horto Florestal",
+    "street": "Rua Antonio Castelar de Franceschi Professor",
+    "number": "200",
+    "cep": "02377080",
+    "latitude": -23.4571,
+    "longitude": -46.6306
+  },
+  {
+    "district": "Tucuruvi",
+    "neighborhood": "Tucuruvi",
+    "street": "Avenida Tucuruvi",
+    "number": "724",
+    "cep": "02304002",
+    "latitude": -23.4813,
+    "longitude": -46.605202
+  },
+  {
+    "district": "Vila Andrade",
+    "neighborhood": "Jardim Parque Morumbi",
+    "street": "Rua José Carlos de Toledo Piza",
+    "number": "S/N",
+    "cep": "05712070",
+    "latitude": -23.621189,
+    "longitude": -46.732128
+  },
+  {
+    "district": "Vila Curuca",
+    "neighborhood": "Parque Dom João Neri",
+    "street": "Rua Altolandia",
+    "number": "140",
+    "cep": "08151280",
+    "latitude": -23.520893,
+    "longitude": -46.404964
+  },
+  {
+    "district": "Vila Formosa",
+    "neighborhood": "Chacara Belenzinho",
+    "street": "Rua Rei Alberto da Belgica",
+    "number": "571",
+    "cep": "03381000",
+    "latitude": -23.57688,
+    "longitude": -46.534111
+  },
+  {
+    "district": "Vila Guilherme",
+    "neighborhood": "Vila Guilherme",
+    "street": "Rua Maria Candida",
+    "number": "1936",
+    "cep": "02071013",
+    "latitude": -23.50844,
+    "longitude": -46.59697
+  },
+  {
+    "district": "Vila Jacui",
+    "neighborhood": "Jardim São Carlos Zona Leste",
+    "street": "Rua Tito Capinam",
+    "number": "25",
+    "cep": "08062270",
+    "latitude": -23.512573,
+    "longitude": -46.475456
+  },
+  {
+    "district": "Vila Leopoldina",
+    "neighborhood": "Vila Leopoldina",
+    "street": "Avenida Nacoes Unidas",
+    "number": "1230",
+    "cep": "05310000",
+    "latitude": -23.532522,
+    "longitude": -46.747501
+  },
+  {
+    "district": "Vila Maria",
+    "neighborhood": "Vila Maria",
+    "street": "Avenida Morvan Dias de Figueiredo",
+    "number": "4200",
+    "cep": "02170000",
+    "latitude": -23.527901,
+    "longitude": -46.592892
+  },
+  {
+    "district": "Vila Mariana",
+    "neighborhood": "Vila Clementino",
+    "street": "Rua Napoleao de Barros",
+    "number": "715",
+    "cep": "04024002",
+    "latitude": -23.5983,
+    "longitude": -46.649307
+  },
+  {
+    "district": "Vila Matilde",
+    "neighborhood": "Jardim Maringa",
+    "street": "Rua Muana",
+    "number": "31",
+    "cep": "03525090",
+    "latitude": -23.551701,
+    "longitude": -46.514301
+  },
+  {
+    "district": "Vila Medeiros",
+    "neighborhood": "Jardim Japao",
+    "street": "Avenida Conceicao",
+    "number": "3027",
+    "cep": "02135001",
+    "latitude": -23.497391,
+    "longitude": -46.587261
+  },
+  {
+    "district": "Vila Prudente",
+    "neighborhood": "Vila Alpina",
+    "street": "Rua Visconde de Alcantara",
+    "number": "350",
+    "cep": "03205060",
+    "latitude": -23.603121,
+    "longitude": -46.568371
+  },
+  {
+    "district": "Vila Sonia",
+    "neighborhood": "Jardim Monte Kemel",
+    "street": "Rua Rubens Grisolia",
+    "number": "65",
+    "cep": "05634150",
+    "latitude": -23.60284,
+    "longitude": -46.74028
+  },
+  {
+    "district": "Agua Rasa",
+    "neighborhood": "Vila Regente Feijo",
+    "street": "Avenida Sapopemba",
+    "number": "3244",
+    "cep": "03345000",
+    "latitude": -23.57394,
+    "longitude": -46.557911
+  },
+  {
+    "district": "Alto de Pinheiros",
+    "neighborhood": "Cerqueira Cesar",
+    "street": "Avenida Eneas Carvalho de Aguiar Doutor",
+    "number": "255",
+    "cep": "05403000",
+    "latitude": -23.555099,
+    "longitude": -46.6717
+  },
+  {
+    "district": "Anhanguera",
+    "neighborhood": "Jardim Anhanguera",
+    "street": "Rua Mario Palmerio",
+    "number": "S/N",
+    "cep": "05267040",
+    "latitude": -23.438089,
+    "longitude": -46.79166
+  },
+  {
+    "district": "Aricanduva",
+    "neighborhood": "Vila Rica",
+    "street": "Avenida Inconfidencia Mineira",
+    "number": "576",
+    "cep": "03911000",
+    "latitude": -23.580339,
+    "longitude": -46.518082
+  },
+  {
+    "district": "Artur Alvim",
+    "neighborhood": "Conjunto Habitacional Padre José de Anchieta",
+    "street": "Avenida Waldemar Tietz",
+    "number": "850",
+    "cep": "03589000",
+    "latitude": -23.549601,
+    "longitude": -46.486198
+  },
+  {
+    "district": "Bela Vista",
+    "neighborhood": "Bela Vista",
+    "street": "Rua Treze de Maio",
+    "number": "267",
+    "cep": "01327000",
+    "latitude": -23.55607,
+    "longitude": -46.64653
+  },
+  {
+    "district": "Belem",
+    "neighborhood": "Quarta Parada",
+    "street": "Rua Serra da Bocaina",
+    "number": "126",
+    "cep": "03174000",
+    "latitude": -23.547001,
+    "longitude": -46.590321
+  },
+  {
+    "district": "Brás",
+    "neighborhood": "Brás",
+    "street": "Rua Coronel Mursa",
+    "number": "618",
+    "cep": "03043050",
+    "latitude": -23.54829,
+    "longitude": -46.615379
+  },
+  {
+    "district": "Brasilandia",
+    "neighborhood": "Brasilandia",
+    "street": "Rua Joaquim de Almeida Morais",
+    "number": "S/N",
+    "cep": "02844000",
+    "latitude": -23.473669,
+    "longitude": -46.688259
+  },
+  {
+    "district": "Butanta",
+    "neighborhood": "Jardim Previdencia",
+    "street": "Rua Domingos Barbieri",
+    "number": "350",
+    "cep": "05531060",
+    "latitude": -23.57691,
+    "longitude": -46.720798
+  },
+  {
+    "district": "Cachoeirinha",
+    "neighborhood": "Vila Nova Cachoeirinha",
+    "street": "Rua Pedro Osorio Filho",
+    "number": "996",
+    "cep": "02614000",
+    "latitude": -23.47348,
+    "longitude": -46.652771
+  },
+  {
+    "district": "Cambuci",
+    "neighborhood": "Cambuci",
+    "street": "Rua Alexandrino da Silveira Bueno",
+    "number": "S/N",
+    "cep": "01524010",
+    "latitude": -23.565201,
+    "longitude": -46.61401
+  },
+  {
+    "district": "Campo Grande",
+    "neighborhood": "Vila Campo Grande",
+    "street": "Rua Domingas Galleteri Blotta",
+    "number": "45",
+    "cep": "04455360",
+    "latitude": -23.682131,
+    "longitude": -46.677391
+  },
+  {
+    "district": "Campo Limpo",
+    "neighborhood": "Jardim Umuarama",
+    "street": "Rua Luster",
+    "number": "216",
+    "cep": "05783150",
+    "latitude": -23.646429,
+    "longitude": -46.770592
+  }
+]

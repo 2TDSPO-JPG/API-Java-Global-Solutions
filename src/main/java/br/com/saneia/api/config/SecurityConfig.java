@@ -100,7 +100,8 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info", "/error", "/about").permitAll()
                         .requestMatchers(HttpMethod.GET, "/files/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/internal/catalog/sensors/by-prefix/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/internal/catalog/sensors/by-prefix/*",
+                                "/internal/catalog/sensors/demo-sp").permitAll()
                         .requestMatchers("/telemetry/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

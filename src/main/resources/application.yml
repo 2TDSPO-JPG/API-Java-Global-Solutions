@@ -159,6 +159,7 @@ saneia:
     stable-readings-to-normalize: 2
     offline-check: PT1M
   seed:
+    sp-catalog: ${SEED_SP_CATALOG:true}
     # Contas provisionadas pelo backend (o cadastro público cria apenas moradores)
     enabled: ${SEED_ENABLED:true}
     demo-data: ${SEED_DEMO_DATA:true}

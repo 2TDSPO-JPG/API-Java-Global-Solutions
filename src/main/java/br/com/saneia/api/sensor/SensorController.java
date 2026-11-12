@@ -41,15 +41,17 @@ public class SensorController {
     @Operation(summary = "Equipamentos ativos com estado, volume e últimas leituras", description = "Paginado: page e size.")
     public ResponseEntity<List<SensorResponse>> list(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "200") int size) {
+            @RequestParam(defaultValue = "200") int size,
+            @RequestParam(defaultValue = "false") boolean catalogOnly) {
         PageRequest request = PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 500));
-        return PageResponses.of(sensors.listActive(request), Function.identity());
+        return PageResponses.of(catalogOnly ? sensors.listCatalog(request) : sensors.listActive(request), Function.identity());
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Ficha do equipamento com amostras, eventos e previsão")
-    public SensorResponse detail(@PathVariable Long id) {
-        return sensors.detail(id);
+    public SensorResponse detail(@PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean catalogOnly) {
+        return catalogOnly ? sensors.catalogDetail(id) : sensors.detail(id);
     }
 
     @PostMapping("/{id}/insights")
