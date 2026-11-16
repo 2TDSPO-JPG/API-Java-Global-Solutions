@@ -35,7 +35,9 @@ export CLIENT_IP=$(curl -s ifconfig.me)              # libera o Query editor do 
 bash scripts/azure-infra.sh
 ```
 
-Se a oferta gratuita do Azure SQL não estiver disponível na assinatura, rode de novo com `export SQL_TIER=basic`. Se a região recusar recursos, use `export LOCATION=eastus`.
+O banco é criado no tier **Basic** (~US$ 5/mês nos créditos de estudante), que não pausa. A oferta gratuita (`export SQL_TIER=free`) pausa o banco até o mês seguinte quando a cota mensal acaba. Sem `GEMINI_API_KEY`, o script grava `desativado` e a API usa o resumo calculado. Se a região recusar recursos, use `export LOCATION=eastus`.
+
+Se o Cloud Shell não tiver `sqlcmd`, rode o `scripts/script-bd.sql` no *Editor de Consultas* do banco, sem as linhas `GO`.
 
 **Guarde o resumo impresso no final**, mas não o coloque no repositório.
 
