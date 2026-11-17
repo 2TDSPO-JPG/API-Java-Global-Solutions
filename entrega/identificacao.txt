@@ -11,5 +11,5 @@ Repositório (Java Advanced): https://github.com/2TDSPO-JPG/API-Java-Global-Solu
 
 Vídeo pitch (até 5 min): https://youtu.be/__________
 
-Deploy da API: https://saneia-api-rm______.azurewebsites.net/api/swagger-ui.html
+Deploy da API: https://saneia-api-rm565824.azurewebsites.net/api/swagger-ui.html
 App mobile: https://github.com/2TDSPO-JPG/SaneiaMobile

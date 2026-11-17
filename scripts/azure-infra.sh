@@ -13,7 +13,7 @@
 #   bash scripts/azure-infra.sh
 #
 # Variáveis opcionais: LOCATION, GEMINI_API_KEY, CLIENT_IP (libera seu IP no firewall do SQL para o Query editor),
-#                      SQL_TIER (free | basic), APP_SKU (B1 | F1), SEED_PASSWORD (senha das contas de teste),
+#                      SQL_TIER (basic | free), APP_SKU (B1 | F1), SEED_PASSWORD (senha das contas de teste),
 #                      MAIL_HOST / MAIL_PORT / MAIL_USERNAME / MAIL_PASSWORD (SMTP do e-mail de risco máximo,
 #                      ex.: smtp.gmail.com / 587 / sua conta / senha de app) e ALERT_EMAILS (destinatários fixos).
 # Nenhuma senha fica gravada no repositório: tudo vem de variáveis de ambiente ou é gerado aqui.
@@ -27,9 +27,11 @@ RM_LOWER=$(echo "$RM" | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9')
 LOCATION="${LOCATION:-brazilsouth}"
 RESOURCE_GROUP="${RESOURCE_GROUP:-rg-saneia-${RM_LOWER}}"
 SQL_SERVER="${SQL_SERVER:-sql-saneia-${RM_LOWER}}"
-SQL_DB="${SQL_DB:-saneiadb}"
+SQL_DB="${SQL_DB:-saneiadb-basic}"
 SQL_ADMIN="${SQL_ADMIN:-saneiaadmin}"
-SQL_TIER="${SQL_TIER:-free}"
+# basic (padrão): preço fixo (~US$ 5/mês), nunca pausa. free: oferta gratuita serverless, que PAUSA até o
+# mês seguinte quando a cota mensal acaba (um ciclo de reinícios da API pode esgotá-la em poucos dias).
+SQL_TIER="${SQL_TIER:-basic}"
 RABBIT_NAME="${RABBIT_NAME:-aci-rabbit-saneia-${RM_LOWER}}"
 RABBIT_DNS="${RABBIT_DNS:-rabbit-saneia-${RM_LOWER}}"
 RABBIT_USER="${RABBIT_USER:-saneia}"
@@ -41,7 +43,8 @@ JWT_SECRET="${JWT_SECRET:-$(openssl rand -hex 32)}"
 FILE_SIGNING_SECRET="${FILE_SIGNING_SECRET:-$(openssl rand -hex 32)}"
 DEVICE_KEY="${DEVICE_KEY:-$(openssl rand -hex 16)}"
 SEED_PASSWORD="${SEED_PASSWORD:-Saneia2026!}"
-GEMINI_API_KEY="${GEMINI_API_KEY:-}"
+# Nunca grava a chave vazia: o Spring AI recusa subir com chave em branco. "desativado" liga o resumo calculado.
+GEMINI_API_KEY="${GEMINI_API_KEY:-desativado}"
 MAIL_HOST="${MAIL_HOST:-}"
 MAIL_PORT="${MAIL_PORT:-587}"
 MAIL_USERNAME="${MAIL_USERNAME:-}"
@@ -75,10 +78,10 @@ if [ "$SQL_TIER" = "free" ]; then
   # Oferta gratuita do Azure SQL (serverless, pausa automática ao atingir o limite mensal)
   az sql db create --resource-group "$RESOURCE_GROUP" --server "$SQL_SERVER" --name "$SQL_DB" \
     --edition GeneralPurpose --compute-model Serverless --family Gen5 --capacity 1 \
-    --use-free-limit --free-limit-exhaustion-behavior AutoPause -o none
+    --use-free-limit --free-limit-exhaustion-behavior AutoPause --backup-storage-redundancy Local -o none
 else
   az sql db create --resource-group "$RESOURCE_GROUP" --server "$SQL_SERVER" --name "$SQL_DB" \
-    --service-objective Basic -o none
+    --service-objective Basic --backup-storage-redundancy Local -o none
 fi
 
 if command -v sqlcmd >/dev/null 2>&1; then
