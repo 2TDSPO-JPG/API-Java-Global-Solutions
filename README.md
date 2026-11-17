@@ -38,7 +38,7 @@ Backend em **Java 21 + Spring Boot 3.5** do **Saneia**. O Saneia junta leituras 
 
 ![Arquitetura macro do Saneia](docs/arquitetura.png)
 
-Fonte do desenho: [`docs/arquitetura.mmd`](docs/arquitetura.mmd) (Mermaid).
+Fonte editável: [`docs/arquitetura.drawio`](docs/arquitetura.drawio) (abra em https://app.diagrams.net ou na extensão Draw.io do VS Code/IntelliJ).
 
 **Fluxos principais**
 
