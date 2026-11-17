@@ -6,7 +6,7 @@ Backend em **Java 21 + Spring Boot 3.5** do **Saneia**. O Saneia junta leituras 
 
 | | |
 | --- | --- |
-| **Deploy (Azure App Service)** | `https://saneia-api-<RM>.azurewebsites.net/api` → *substitua pelo link real após rodar o script* |
+| **Deploy (Azure App Service)** | https://saneia-api-rm565824.azurewebsites.net/api (Swagger: https://saneia-api-rm565824.azurewebsites.net/api/swagger-ui.html) |
 | **Swagger** | `/api/swagger-ui.html` |
 | **Painel admin (Thymeleaf)** | `/api/painel` · login `admin@saneia.test` |
 | **Requisito 5 escolhido** | **Opção A: RabbitMQ**, com eventos publicados e consumidos de forma assíncrona |
@@ -124,7 +124,7 @@ No `.env.local` do SaneiaMobile:
 
 ```dotenv
 EXPO_PUBLIC_API_URL=http://<IP-do-computador>:8080/api      # local
-EXPO_PUBLIC_API_URL=https://saneia-api-<RM>.azurewebsites.net/api   # nuvem
+EXPO_PUBLIC_API_URL=https://saneia-api-rm565824.azurewebsites.net/api   # nuvem
 ```
 
 O CORS já libera `Authorization`, `Content-Type` e o preflight `OPTIONS`.
@@ -266,7 +266,7 @@ bash scripts/validar-ia.sh                                              # ESPERA
 
 ## Painel administrativo e alerta por e-mail
 
-**Painel web em Thymeleaf** em `/api/painel` (no Azure: `https://saneia-api-<RM>.azurewebsites.net/api/painel`). O login é por formulário, com sessão e CSRF, usando as mesmas contas da API, e **só o papel admin entra**. A cadeia de segurança é separada da API (`SecurityConfig`, `@Order(1)`).
+**Painel web em Thymeleaf** em `/api/painel` (no Azure: `https://saneia-api-rm565824.azurewebsites.net/api/painel`). O login é por formulário, com sessão e CSRF, usando as mesmas contas da API, e **só o papel admin entra**. A cadeia de segurança é separada da API (`SecurityConfig`, `@Order(1)`).
 
 | Tela | O que mostra / permite |
 | --- | --- |
