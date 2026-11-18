@@ -72,6 +72,7 @@ stages:
             condition: succeededOrFailed()
             inputs:
               summaryFileLocation: '$(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml'
+              pathToSources: '$(System.DefaultWorkingDirectory)/src/main/java'
 
           - task: CopyFiles@2
             displayName: Separar o pacote e os scripts
