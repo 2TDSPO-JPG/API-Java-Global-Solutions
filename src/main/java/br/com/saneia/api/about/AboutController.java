@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AboutController {
 
     /** Altere esta mensagem numa branch para demonstrar o fluxo Boards → PR → Build → Release. */
-    static final String RELEASE_NOTE = "Saneia API no ar: relatos, monitoramento e insights com IA.";
+    static final String RELEASE_NOTE = "Ensaio: Saneia API com alertas de risco máximo.";
 
     private final String version;
     private final String build;
