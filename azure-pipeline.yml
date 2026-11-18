@@ -67,11 +67,30 @@ stages:
               testRunTitle: 'Saneia API - testes automatizados'
               failTaskOnFailedTests: true
 
+          - task: UseDotNet@2
+            displayName: Preparar .NET para o ReportGenerator
+            condition: succeededOrFailed()
+            continueOnError: true
+            inputs:
+              packageType: sdk
+              version: 8.x
+
+          - script: |
+              dotnet tool install dotnet-reportgenerator-globaltool --tool-path "$(Agent.TempDirectory)/rg"
+              "$(Agent.TempDirectory)/rg/reportgenerator" \
+                -reports:target/site/jacoco/jacoco.xml \
+                -targetdir:target/coverage \
+                -reporttypes:Cobertura \
+                -sourcedirs:"$(System.DefaultWorkingDirectory)/src/main/java"
+            displayName: Converter JaCoCo para Cobertura (caminhos completos)
+            condition: succeededOrFailed()
+            continueOnError: true
+
           - task: PublishCodeCoverageResults@2
             displayName: Publicar cobertura de código (JaCoCo)
             condition: succeededOrFailed()
             inputs:
-              summaryFileLocation: '$(System.DefaultWorkingDirectory)/target/site/jacoco/jacoco.xml'
+              summaryFileLocation: '$(System.DefaultWorkingDirectory)/target/coverage/Cobertura.xml'
               pathToSources: '$(System.DefaultWorkingDirectory)/src/main/java'
 
           - task: CopyFiles@2
