@@ -19,7 +19,7 @@ import br.com.saneia.api.support.IntegrationTest;
 
 /** Depois de coordenar com o mobile: SANEIA_REQUIRE_POSTAL_ADDRESS=true exige o objeto só nos novos cadastros. */
 @TestPropertySource(properties = "saneia.sensors.require-postal-address=true")
-@DisplayName("Correção 1: postalAddress obrigatório nos novos cadastros (legados continuam editáveis)")
+@DisplayName("postalAddress obrigatório nos novos cadastros (legados continuam editáveis)")
 class SensorPostalAddressRequiredIntegrationTest extends IntegrationTest {
 
     @Autowired
