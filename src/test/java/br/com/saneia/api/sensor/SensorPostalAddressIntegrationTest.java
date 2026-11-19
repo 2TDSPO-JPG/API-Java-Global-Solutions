@@ -20,7 +20,7 @@ import org.springframework.http.MediaType;
 
 import br.com.saneia.api.support.IntegrationTest;
 
-@DisplayName("Correção 1: endereço estruturado (postalAddress) do equipamento")
+@DisplayName("Endereço estruturado (postalAddress) do equipamento")
 class SensorPostalAddressIntegrationTest extends IntegrationTest {
 
     private static Map<String, Object> postal(String cep, String number, String state, String complement) {

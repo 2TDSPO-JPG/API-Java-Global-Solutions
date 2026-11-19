@@ -34,7 +34,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import br.com.saneia.api.support.IntegrationTest;
 
-@DisplayName("Correção 3: regra de recorrência (20 dias / 75 m) também na edição do relato")
+@DisplayName("Regra de recorrência (20 dias / 75 m) também na edição do relato")
 class ReportEditRecurrenceIntegrationTest extends IntegrationTest {
 
     private String newResident(String email) throws Exception {

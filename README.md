@@ -314,7 +314,6 @@ Sem SMTP, a API funciona normalmente e o painel registra os alertas como "Não e
 - **Oracle:** [`scripts/script-bd-oracle.sql`](scripts/script-bd-oracle.sql), para o perfil `oracle`.
 - O catálogo (`sn_sensors`) fica separado do histórico (`sn_sensor_readings`) e dos eventos (`sn_sensor_events`).
 - `sn_sensors` guarda o endereço estruturado em `postal_*` (nulo nos cadastros legados) e a chave `active_prefix_key`, que é `UPPER(prefix)` enquanto o equipamento está ativo e `NULL` depois da exclusão lógica. A restrição `uk_sn_sensors_active_prefix` garante um ativo por prefixo. No SQL Server ela é um índice único **filtrado** (`WHERE active_prefix_key IS NOT NULL`), porque lá o UNIQUE comum aceita um só `NULL`. No Oracle e no H2 o UNIQUE já ignora os nulos.
-- **Bancos criados antes desta versão:** rode [`scripts/migracao-v2-sqlserver.sql`](scripts/migracao-v2-sqlserver.sql) ou [`scripts/migracao-v2-oracle.sql`](scripts/migracao-v2-oracle.sql). O script lista os prefixos ativos duplicados e **para com erro** se houver algum, sem alterar nada; resolva renomeando ou retirando os excedentes e rode de novo. Com `ddl-auto=update`, a API também preenche a chave na subida e registra no log as duplicatas que encontrar.
 - Consultas para comprovar o CRUD direto no banco: [`scripts/consultas-crud.sql`](scripts/consultas-crud.sql).
 
 ---
@@ -330,7 +329,6 @@ Sem SMTP, a API funciona normalmente e o painel registra os alertas como "Não e
 | Pipeline de Build (CI): Maven, JUnit, JaCoCo e artefato | [`azure-pipeline.yml`](azure-pipeline.yml) |
 | Pipeline de Release (CD): deploy automático após novo artefato | [`azure-pipeline-release.yml`](azure-pipeline-release.yml) |
 | Simulação de leituras para a demonstração | [`scripts/simular-leituras.sh`](scripts/simular-leituras.sh) |
-| Passo a passo do Azure DevOps e roteiro dos vídeos | [`docs/ROTEIRO-ENTREGAS.md`](docs/ROTEIRO-ENTREGAS.md) |
 
 ```bash
 az login

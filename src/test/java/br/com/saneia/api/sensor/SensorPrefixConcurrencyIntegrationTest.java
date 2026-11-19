@@ -28,7 +28,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import br.com.saneia.api.support.IntegrationTest;
 
-@DisplayName("Correção 2: prefixo único entre equipamentos ativos, garantido no banco")
+@DisplayName("Prefixo único entre equipamentos ativos, garantido no banco")
 class SensorPrefixConcurrencyIntegrationTest extends IntegrationTest {
 
     @Autowired

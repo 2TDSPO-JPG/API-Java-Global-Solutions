@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
  * Bancos criados antes da restrição de prefixo (ddl-auto=update) ganham a coluna active_prefix_key vazia.
  * Na subida, preenche a chave dos equipamentos ativos. Duplicatas não são resolvidas em silêncio: o mais antigo
  * fica com o prefixo e os demais são listados no log, para o admin renomear ou retirar pelo painel ou pela API.
- * Os scripts scripts/migracao-v2-*.sql fazem a mesma verificação direto no banco.
  */
 @Component
 @Order(0)
