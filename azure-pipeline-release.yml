@@ -55,8 +55,20 @@ stages:
                     ls -la "$(Pipeline.Workspace)/ci/$(ARTIFACT_NAME)/target"
                   displayName: Conferir o artefato recebido
 
+                # Deploy ANTES das variáveis: gravar o APP_BUILD reinicia o Web App (e o serviço de deploy).
+                # Nessa ordem o reinício acontece com o jar novo já publicado, sem derrubar o envio.
+                - task: AzureWebApp@1
+                  displayName: Deploy do jar no Web App (Java 21)
+                  inputs:
+                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
+                    appType: webAppLinux
+                    appName: $(WEBAPP_NAME)
+                    resourceGroupName: $(RESOURCE_GROUP)
+                    package: '$(Pipeline.Workspace)/ci/$(ARTIFACT_NAME)/target/saneia-api.jar'
+                    runtimeStack: 'JAVA|21-java21'
+
                 - task: AzureAppServiceSettings@1
-                  displayName: Atualizar variáveis de ambiente não sensíveis
+                  displayName: Atualizar variáveis de ambiente (reinicia a API com o jar novo)
                   inputs:
                     azureSubscription: $(AZURE_SERVICE_CONNECTION)
                     appName: $(WEBAPP_NAME)
@@ -68,18 +80,9 @@ stages:
                         { "name": "APP_BUILD", "value": "$(resources.pipeline.ci.runName)", "slotSetting": false }
                       ]
 
-                - task: AzureWebApp@1
-                  displayName: Deploy do jar no Web App (Java 21)
-                  inputs:
-                    azureSubscription: $(AZURE_SERVICE_CONNECTION)
-                    appType: webAppLinux
-                    appName: $(WEBAPP_NAME)
-                    resourceGroupName: $(RESOURCE_GROUP)
-                    package: '$(Pipeline.Workspace)/ci/$(ARTIFACT_NAME)/target/saneia-api.jar'
-                    runtimeStack: 'JAVA|21-java21'
-
                 - script: |
-                    echo "Aguardando a API subir em $(API_BASE_URL)"
+                    echo "Aguardando o reinício com o jar novo e a API subir em $(API_BASE_URL)"
+                    sleep 45
                     for tentativa in $(seq 1 30); do
                       status=$(curl -s -o /dev/null -w '%{http_code}' "$(API_BASE_URL)/actuator/health" || true)
                       echo "Tentativa $tentativa: HTTP $status"
